@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Socket } from 'socket.io-client';
 import type { AuthResponse } from './api';
 import type { RoomState } from './types';
@@ -19,23 +19,24 @@ export default function App() {
   const [chipBalance, setChipBalance] = useState<number>(auth?.chipBalance ?? 0);
   const [roomState, setRoomState] = useState<RoomState | null>(null);
   const [showChangelog, setShowChangelog] = useState(false);
-  const socketRef = useRef<Socket | null>(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
     if (!auth) return;
-    const socket = createSocket(auth.token);
-    socketRef.current = socket;
+    const newSocket = createSocket(auth.token);
 
-    socket.on('room:state', (state: RoomState) => setRoomState(state));
-    socket.on('chip:update', ({ newBalance }: { newBalance: number }) => setChipBalance(newBalance));
-    socket.on('connect_error', (err: Error) => {
+    newSocket.on('room:state', (state: RoomState) => setRoomState(state));
+    newSocket.on('chip:update', ({ newBalance }: { newBalance: number }) => setChipBalance(newBalance));
+    newSocket.on('connect_error', (err: Error) => {
       console.error('連線失敗', err.message);
       if (err.message.includes('登入')) handleLogout();
     });
 
+    setSocket(newSocket);
+
     return () => {
-      socket.disconnect();
-      socketRef.current = null;
+      newSocket.disconnect();
+      setSocket(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth]);
@@ -53,7 +54,7 @@ export default function App() {
   }
 
   function handleLeaveRoom() {
-    socketRef.current?.emit('room:leave');
+    socket?.emit('room:leave');
     setRoomState(null);
   }
 
@@ -61,7 +62,7 @@ export default function App() {
     return <AuthScreen onAuthed={handleAuthed} />;
   }
 
-  if (!socketRef.current) {
+  if (!socket) {
     return <div className="centered-screen">連線中...</div>;
   }
 
@@ -72,7 +73,7 @@ export default function App() {
   if (!roomState) {
     return (
       <LobbyScreen
-        socket={socketRef.current}
+        socket={socket}
         nickname={auth.nickname}
         chipBalance={chipBalance}
         onJoined={() => {}}
@@ -83,7 +84,7 @@ export default function App() {
 
   return (
     <RoomScreen
-      socket={socketRef.current}
+      socket={socket}
       roomState={roomState}
       chipBalance={chipBalance}
       onLeave={handleLeaveRoom}
