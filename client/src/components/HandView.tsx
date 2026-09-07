@@ -31,6 +31,7 @@ export function HandView({
   canDouble,
   canSplit,
   style,
+  dealBaseOrder,
 }: {
   socket: Socket;
   hand: HandState;
@@ -40,10 +41,11 @@ export function HandView({
   canDouble: boolean;
   canSplit: boolean;
   style?: CSSProperties;
+  dealBaseOrder: number;
 }) {
   const [hint, setHint] = useState<string | null>(null);
   const total = handTotalLabel(hand);
-  const dealInfo = useDealAnimation(hand.id, hand.cards.length);
+  const dealInfo = useDealAnimation(hand.cards.length, dealBaseOrder);
 
   function act(event: string) {
     socket.emit(`action:${event}`, { handId: hand.id });

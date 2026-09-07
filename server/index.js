@@ -6,7 +6,6 @@ import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import authRoutes from './auth/authRoutes.js';
-import changelogRoutes from './changelog/changelogRoutes.js';
 import { attachSocketServer } from './socket/index.js';
 import { sweepEmptyRooms } from './rooms/roomManager.js';
 
@@ -17,7 +16,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use('/api', authRoutes);
-app.use('/api', changelogRoutes);
 app.use(express.static(clientDist));
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api')) return next();

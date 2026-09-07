@@ -5,7 +5,7 @@ import { CardView } from './CardView';
 import { HandView } from './HandView';
 import { CountDisplay } from './CountDisplay';
 import { HistoryLog } from './HistoryLog';
-import { useDealAnimation, resetDealAnimation } from '../hooks/useDealAnimation';
+import { useDealAnimation, CARD_SLOT_STRIDE } from '../hooks/useDealAnimation';
 import { getSeatTransform } from '../tableSeats';
 
 const PHASE_LABEL: Record<string, string> = {
@@ -21,17 +21,16 @@ export function RoomScreen({
   roomState,
   chipBalance,
   onLeave,
-  onShowChangelog,
 }: {
   socket: Socket;
   roomState: RoomState;
   chipBalance: number;
   onLeave: () => void;
-  onShowChangelog: () => void;
 }) {
   const [betAmount, setBetAmount] = useState(50);
   const [lastError, setLastError] = useState<string | null>(null);
-  const dealerDealInfo = useDealAnimation('dealer', roomState.dealerCards.length);
+  // Dealer always sorts after every seat (0..maxHands-1) so players deal in first.
+  const dealerDealInfo = useDealAnimation(roomState.dealerCards.length, roomState.maxHands * CARD_SLOT_STRIDE);
 
   useEffect(() => {
     function onError(err: { message: string }) {
@@ -43,12 +42,6 @@ export function RoomScreen({
       socket.off('error', onError);
     };
   }, [socket]);
-
-  useEffect(() => {
-    if (roomState.phase === 'WAITING_FOR_BETS') {
-      resetDealAnimation();
-    }
-  }, [roomState.phase, roomState.roundNumber]);
 
   const mySocketId = socket.id;
   const myHandIds = new Set(
@@ -64,6 +57,9 @@ export function RoomScreen({
     socket.emit('round:start', {}, (res: { error?: string }) => {
       if (res?.error) setLastError(res.error);
     });
+  }
+  function continueToNextRound() {
+    socket.emit('round:continue');
   }
   function resetShoe() {
     socket.emit('shoe:reset');
@@ -81,7 +77,6 @@ export function RoomScreen({
           <div>房號：<b>{roomState.roomId}</b>（分享給朋友加入）</div>
           <div>階段：{PHASE_LABEL[roomState.phase]} · 第 {roomState.roundNumber} 局 · 手牌 {totalHands}/{roomState.maxHands}</div>
           <div>籌碼：<b>{chipBalance}</b></div>
-          <button onClick={onShowChangelog}>更新日誌</button>
           <button onClick={onLeave}>離開房間</button>
         </header>
 
@@ -117,11 +112,11 @@ export function RoomScreen({
 
           {Array.from({ length: roomState.maxHands }).map((_, seatIndex) => {
             const hand = roomState.hands[seatIndex];
-            const { left, top, rotation } = getSeatTransform(seatIndex, roomState.maxHands);
+            const { left, top } = getSeatTransform(seatIndex, roomState.maxHands);
             const seatStyle = {
               left: `${left}%`,
               top: `${top}%`,
-              transform: `translate(-50%, -50%) rotate(${45 + rotation}deg)`,
+              transform: 'translate(-50%, -50%)',
             };
 
             if (!hand) {
@@ -146,6 +141,7 @@ export function RoomScreen({
                   totalHands < roomState.maxHands
                 }
                 style={seatStyle}
+                dealBaseOrder={seatIndex * CARD_SLOT_STRIDE}
               />
             );
           })}
@@ -187,6 +183,14 @@ export function RoomScreen({
               開始發牌
             </button>
             <button onClick={resetShoe}>重置牌靴（洗回6副牌）</button>
+          </section>
+        )}
+
+        {roomState.phase === 'PAYOUT' && (
+          <section className="bet-controls">
+            <button className="primary" onClick={continueToNextRound}>
+              確認，開始下一局
+            </button>
           </section>
         )}
 

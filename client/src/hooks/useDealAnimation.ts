@@ -5,55 +5,30 @@ export interface DealInfo {
   delayMs: number;
 }
 
-// Monotonically increasing across the whole app lifetime. RoomScreen calls this hook
-// once per hand (in a fixed seat order) and once for the dealer on every render, so
-// cards discovered "new" earlier in that fixed order get an earlier stagger slot —
-// giving a consistent one-at-a-time deal order across all connected clients, since
-// everyone renders from the same room:state snapshot in the same order.
-let globalDealCounter = 0;
+// How many card slots each seat gets before the ordering formula would start
+// overlapping with the next seat's cards — generous headroom for hits/splits.
+export const CARD_SLOT_STRIDE = 12;
 
-const prevLengths = new Map<string, number>();
-const seenKeys = new Set<string>();
-const orderByKey = new Map<string, number>();
+// Deterministic stagger order: cardCount/baseOrder alone decide each card's delay,
+// so the deal order (players first, dealer last) doesn't depend on React's hook-call
+// order — the caller picks baseOrder (e.g. seatIndex * CARD_SLOT_STRIDE for a hand,
+// maxHands * CARD_SLOT_STRIDE for the dealer, which always sorts after every seat).
+export function useDealAnimation(cardCount: number, baseOrder: number, staggerStepMs = 350): DealInfo[] {
+  const prevLenRef = useRef(0);
+  const seenRef = useRef<Set<number>>(new Set());
 
-// Call this whenever a new round begins (e.g. phase transitions back to
-// WAITING_FOR_BETS). Without it, the stagger delay would keep growing forever across
-// a long session since globalDealCounter only ever increases.
-export function resetDealAnimation() {
-  globalDealCounter = 0;
-  prevLengths.clear();
-  seenKeys.clear();
-  orderByKey.clear();
-}
-
-export function useDealAnimation(handKey: string, cardCount: number, staggerStepMs = 150): DealInfo[] {
-  // Ref just to give each hook call a stable identity; the actual bookkeeping lives in
-  // module-level maps keyed by handKey so it survives remounts of the hand component.
-  useRef(handKey);
-
-  const prevLen = prevLengths.get(handKey) ?? 0;
-  const shrank = cardCount < prevLen;
-
-  if (shrank) {
-    for (const key of Array.from(seenKeys)) {
-      if (key.startsWith(`${handKey}:`)) seenKeys.delete(key);
-    }
+  if (cardCount < prevLenRef.current) {
+    // Hand shrank (e.g. a split moved a card out) — forget prior tracking for it.
+    seenRef.current.clear();
   }
 
   const result: DealInfo[] = [];
   for (let i = 0; i < cardCount; i++) {
-    const key = `${handKey}:${i}`;
-    const isNew = !seenKeys.has(key);
-    if (isNew) {
-      seenKeys.add(key);
-      if (!orderByKey.has(key)) {
-        orderByKey.set(key, globalDealCounter++);
-      }
-    }
-    const order = orderByKey.get(key) ?? 0;
-    result.push({ isNew, delayMs: isNew ? order * staggerStepMs : 0 });
+    const isNew = !seenRef.current.has(i);
+    if (isNew) seenRef.current.add(i);
+    result.push({ isNew, delayMs: isNew ? (baseOrder + i) * staggerStepMs : 0 });
   }
 
-  prevLengths.set(handKey, cardCount);
+  prevLenRef.current = cardCount;
   return result;
 }

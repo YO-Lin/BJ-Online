@@ -20,8 +20,9 @@ function handleError(socket, err) {
   }
 }
 
-// If the round has reached DEALER_TURN, resolve payouts, apply chip deltas, and
-// broadcast results before returning the room to the betting phase.
+// If the round has reached DEALER_TURN, resolve payouts and apply chip deltas.
+// The room stays in PAYOUT phase (results visible) until a player explicitly
+// triggers 'round:continue' to move back to betting for the next round.
 async function settleIfDealerTurn(io, room) {
   if (room.phase !== 'DEALER_TURN') return;
   const results = resolveRound(room);
@@ -39,7 +40,6 @@ async function settleIfDealerTurn(io, room) {
     io.to(b.socketId).emit('chip:update', { newBalance: b.newBalance });
   }
 
-  backToBetting(room);
   broadcastRoom(io, room);
 }
 
@@ -127,6 +127,20 @@ export function attachSocketServer(io) {
         }
       });
     }
+
+    socket.on('round:continue', () => {
+      const room = getRoom(socket.data.roomId);
+      if (!room) return;
+      try {
+        if (room.phase !== 'PAYOUT') {
+          throw new GameError('現在不是可以繼續下一局的時機');
+        }
+        backToBetting(room);
+        broadcastRoom(io, room);
+      } catch (err) {
+        handleError(socket, err);
+      }
+    });
 
     socket.on('shoe:reset', () => {
       const room = getRoom(socket.data.roomId);

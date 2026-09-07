@@ -58,10 +58,3 @@ export interface RoomState {
 export function isHidden(c: Card | HiddenCard): c is HiddenCard {
   return (c as HiddenCard).hidden === true;
 }
-
-export interface ChangelogEntry {
-  id: string;
-  title: string;
-  description: string;
-  created_at: string;
-}

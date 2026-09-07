@@ -6,13 +6,11 @@ export function LobbyScreen({
   nickname,
   chipBalance,
   onJoined,
-  onShowChangelog,
 }: {
   socket: Socket;
   nickname: string;
   chipBalance: number;
   onJoined: (roomId: string) => void;
-  onShowChangelog: () => void;
 }) {
   const [joinCode, setJoinCode] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -56,8 +54,6 @@ export function LobbyScreen({
           加入房間
         </button>
         {error && <p className="error-text">{error}</p>}
-        <div className="divider" />
-        <button onClick={onShowChangelog}>更新日誌</button>
       </div>
     </div>
   );

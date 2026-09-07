@@ -6,7 +6,6 @@ import { createSocket } from './socket';
 import { AuthScreen } from './components/AuthScreen';
 import { LobbyScreen } from './components/LobbyScreen';
 import { RoomScreen } from './components/RoomScreen';
-import { ChangelogScreen } from './components/ChangelogScreen';
 import './App.css';
 
 const STORAGE_KEY = 'bj-auth';
@@ -18,7 +17,6 @@ export default function App() {
   });
   const [chipBalance, setChipBalance] = useState<number>(auth?.chipBalance ?? 0);
   const [roomState, setRoomState] = useState<RoomState | null>(null);
-  const [showChangelog, setShowChangelog] = useState(false);
   const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
@@ -66,10 +64,6 @@ export default function App() {
     return <div className="centered-screen">連線中...</div>;
   }
 
-  if (showChangelog) {
-    return <ChangelogScreen onBack={() => setShowChangelog(false)} />;
-  }
-
   if (!roomState) {
     return (
       <LobbyScreen
@@ -77,7 +71,6 @@ export default function App() {
         nickname={auth.nickname}
         chipBalance={chipBalance}
         onJoined={() => {}}
-        onShowChangelog={() => setShowChangelog(true)}
       />
     );
   }
@@ -88,7 +81,6 @@ export default function App() {
       roomState={roomState}
       chipBalance={chipBalance}
       onLeave={handleLeaveRoom}
-      onShowChangelog={() => setShowChangelog(true)}
     />
   );
 }
