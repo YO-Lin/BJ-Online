@@ -3,7 +3,7 @@ import { createShoe } from '../game/shoe.js';
 
 const rooms = new Map();
 const MAX_SEATS = 6;
-const MAX_HANDS = 6;
+const MAX_HANDS = 7;
 const EMPTY_ROOM_TTL_MS = 2 * 60 * 1000;
 
 function makeRoomId() {

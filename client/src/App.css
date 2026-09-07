@@ -99,11 +99,40 @@ button {
 /* Room screen */
 .room-screen {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: flex-start;
   gap: 16px;
   padding: 16px;
-  max-width: 1000px;
+  max-width: 1300px;
   margin: 0 auto;
+}
+
+.room-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.room-sidebar {
+  flex: 0 0 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: sticky;
+  top: 16px;
+}
+
+@media (max-width: 900px) {
+  .room-screen {
+    flex-direction: column;
+  }
+  .room-sidebar {
+    flex: 1 1 auto;
+    width: 100%;
+    position: static;
+  }
 }
 
 .room-header {
@@ -125,13 +154,6 @@ button {
   border-radius: 6px;
 }
 
-.dealer-area {
-  background: #0f4a2c;
-  border-radius: 8px;
-  padding: 12px 16px;
-  border: 1px solid #1e6b42;
-}
-
 .count-title {
   font-weight: 700;
   color: #d4af37;
@@ -146,22 +168,88 @@ button {
 }
 
 .card {
-  width: 44px;
-  height: 62px;
+  width: clamp(32px, 5vw, 50px);
+  height: auto;
+  aspect-ratio: 0.68;
   border-radius: 6px;
-  background: #fff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 15px;
+  flex-shrink: 0;
 }
-.card-red { color: #c62828; }
-.card-black { color: #1a1a1a; }
+.card-image {
+  object-fit: contain;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
 .card-back {
   background: repeating-linear-gradient(45deg, #14603a, #14603a 4px, #0b3d24 4px, #0b3d24 8px);
   border: 2px solid #d4af37;
+  box-sizing: border-box;
+}
+
+@keyframes deal-in {
+  from { opacity: 0; transform: translateY(-40px) scale(0.85); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.card-dealing {
+  animation: deal-in 280ms ease-out both;
+}
+
+/* Table felt */
+.table-felt {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 1;
+  background: #0b3d24;
+  border: 4px solid #1e6b42;
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.table-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.corner-text {
+  position: absolute;
+  top: 92%;
+  color: #c62828;
+  font-weight: 700;
+  font-family: Georgia, serif;
+  font-size: clamp(9px, 1.4vw, 14px);
+  z-index: 1;
+}
+.corner-text-left {
+  left: 4%;
+  transform: rotate(-6deg);
+}
+.corner-text-right {
+  right: 4%;
+  transform: rotate(6deg);
+}
+
+.dealer-area {
+  position: absolute;
+  left: 50%;
+  top: 6%;
+  transform: translateX(-50%);
+  background: rgba(11, 61, 36, 0.75);
+  border-radius: 8px;
+  padding: 8px 16px;
+  text-align: center;
+  z-index: 2;
+}
+
+.seat-slot-empty {
+  position: absolute;
+  width: clamp(40px, 8vw, 70px);
+  height: clamp(40px, 8vw, 70px);
+  border: 2px dashed rgba(255, 255, 255, 0.6);
+  border-radius: 6px;
+  z-index: 2;
 }
 
 .insurance-box {
@@ -179,21 +267,21 @@ button {
   align-items: center;
 }
 
-.hands-area {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
 .hand-box {
-  background: #0f4a2c;
+  position: absolute;
+  z-index: 2;
+  background: rgba(15, 74, 44, 0.95);
   border: 1px solid #1e6b42;
   border-radius: 8px;
-  padding: 10px;
-  width: 220px;
+  padding: 8px;
+  width: clamp(120px, 18vw, 170px);
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+.hand-box .card {
+  width: clamp(28px, 4vw, 40px);
+  height: auto;
 }
 .hand-active {
   border-color: #d4af37;

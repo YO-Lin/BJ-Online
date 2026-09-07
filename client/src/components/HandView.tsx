@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import type { Socket } from 'socket.io-client';
 import type { HandState } from '../types';
 import { CardView } from './CardView';
+import { useDealAnimation } from '../hooks/useDealAnimation';
 
 const RESULT_LABEL: Record<string, string> = {
   WIN: '贏',
@@ -29,6 +30,7 @@ export function HandView({
   isActive,
   canDouble,
   canSplit,
+  style,
 }: {
   socket: Socket;
   hand: HandState;
@@ -37,9 +39,11 @@ export function HandView({
   isActive: boolean;
   canDouble: boolean;
   canSplit: boolean;
+  style?: CSSProperties;
 }) {
   const [hint, setHint] = useState<string | null>(null);
   const total = handTotalLabel(hand);
+  const dealInfo = useDealAnimation(hand.id, hand.cards.length);
 
   function act(event: string) {
     socket.emit(`action:${event}`, { handId: hand.id });
@@ -53,14 +57,14 @@ export function HandView({
   }
 
   return (
-    <div className={`hand-box ${isActive ? 'hand-active' : ''}`}>
+    <div className={`hand-box ${isActive ? 'hand-active' : ''}`} style={style}>
       <div className="hand-header">
         <span>{ownerNickname}</span>
         <span>下注 {hand.bet}</span>
       </div>
       <div className="cards-row">
         {hand.cards.map((c, i) => (
-          <CardView key={i} card={c} />
+          <CardView key={i} card={c} isNew={dealInfo[i]?.isNew} delayMs={dealInfo[i]?.delayMs} />
         ))}
       </div>
       <div className="hand-footer">

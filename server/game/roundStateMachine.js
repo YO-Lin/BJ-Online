@@ -4,7 +4,7 @@ import { revealCard } from './hiLo.js';
 import { handValue, isBust, isBlackjack, canSplit, canDouble, dealerUpCard } from './handEngine.js';
 import { resolveHand, resolveInsurance } from './payout.js';
 import { playDealerHand } from './dealerEngine.js';
-import { canAddHand } from '../rooms/roomManager.js';
+import { canAddHand, MAX_HANDS } from '../rooms/roomManager.js';
 
 export class GameError extends Error {}
 
@@ -19,7 +19,7 @@ export function placeBet(room, socketId, amount) {
   const seat = room.players.get(socketId);
   if (!seat) throw new GameError('你不在這個房間裡');
   if (amount <= 0) throw new GameError('下注金額必須大於0');
-  if (!canAddHand(room)) throw new GameError('房間手牌數已達上限（6手）');
+  if (!canAddHand(room)) throw new GameError(`房間手牌數已達上限（${MAX_HANDS}手）`);
 
   const hand = {
     id: randomUUID(),
@@ -181,7 +181,7 @@ export function double(room, socketId, handId) {
 export function split(room, socketId, handId) {
   const hand = assertActiveHand(room, socketId, handId);
   if (!canSplit(hand)) throw new GameError('這手牌不能分牌');
-  if (!canAddHand(room)) throw new GameError('房間手牌數已達上限（6手），無法分牌');
+  if (!canAddHand(room)) throw new GameError(`房間手牌數已達上限（${MAX_HANDS}手），無法分牌`);
 
   const seat = room.players.get(socketId);
   const isAceSplit = hand.cards[0].rank === 'A';
