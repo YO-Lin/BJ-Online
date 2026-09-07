@@ -96,55 +96,62 @@ button {
   font-weight: 600;
 }
 
-/* Room screen */
+/* Room screen — sized to the viewport so the whole game fits without scrolling */
 .room-screen {
   display: flex;
   flex-direction: row;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 16px;
+  align-items: stretch;
+  gap: 12px;
+  padding: 10px 12px;
   max-width: 1600px;
   margin: 0 auto;
+  height: 100svh;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .room-main {
   flex: 1 1 auto;
   min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 8px;
 }
 
 .room-sidebar {
-  flex: 0 0 300px;
+  flex: 0 0 280px;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  position: sticky;
-  top: 16px;
+  gap: 8px;
 }
 
 @media (max-width: 900px) {
   .room-screen {
     flex-direction: column;
+    height: auto;
+    min-height: 100svh;
+    overflow: auto;
   }
   .room-sidebar {
-    flex: 1 1 auto;
+    flex: 0 0 auto;
     width: 100%;
-    position: static;
   }
 }
 
 .room-header {
+  flex: 0 0 auto;
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 12px;
   align-items: center;
   justify-content: space-between;
   background: #0f4a2c;
   border-radius: 8px;
-  padding: 10px 16px;
+  padding: 6px 12px;
   border: 1px solid #1e6b42;
+  font-size: 14px;
 }
 
 .error-banner {
@@ -194,17 +201,26 @@ button {
 }
 
 /* Table felt */
+.table-wrapper {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: visible;
+}
+
 .table-felt {
   position: relative;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  aspect-ratio: 1.55 / 1;
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  aspect-ratio: 1 / 1;
   background: #0b3d24;
   border: 6px solid #1e6b42;
-  border-radius: 50% / 26%;
+  border-radius: 50%;
   overflow: visible;
-  margin-bottom: 90px;
 }
 
 .table-svg {
@@ -230,13 +246,15 @@ button {
 }
 
 .insurance-box {
+  flex: 0 0 auto;
   background: #4a3a0f;
   border: 1px solid #d4af37;
   border-radius: 8px;
-  padding: 12px 16px;
+  padding: 8px 14px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+  font-size: 13px;
 }
 .insurance-row {
   display: flex;
@@ -355,6 +373,7 @@ button {
 }
 
 .bet-controls {
+  flex: 0 0 auto;
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
@@ -362,16 +381,17 @@ button {
   background: #0f4a2c;
   border: 1px solid #1e6b42;
   border-radius: 8px;
-  padding: 12px 16px;
+  padding: 8px 14px;
 }
 .bet-controls input {
   width: 100px;
 }
 
 .players-list {
+  flex: 0 0 auto;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 .player-chip {
   background: #14603a;
@@ -385,15 +405,24 @@ button {
 }
 
 .count-box, .history-box {
+  flex: 0 0 auto;
   background: #0f4a2c;
   border: 1px solid #1e6b42;
   border-radius: 8px;
-  padding: 12px 16px;
-  font-size: 14px;
+  padding: 10px 14px;
+  font-size: 13px;
+}
+
+.history-box {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .history-list {
-  max-height: 240px;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   display: flex;
   flex-direction: column;

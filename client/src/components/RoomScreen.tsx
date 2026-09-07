@@ -82,6 +82,7 @@ export function RoomScreen({
 
         {lastError && <div className="error-banner">{lastError}</div>}
 
+        <div className="table-wrapper">
         <div className="table-felt">
           <svg className="table-svg" viewBox="0 0 1000 500" preserveAspectRatio="none">
             <defs>
@@ -152,6 +153,7 @@ export function RoomScreen({
               />
             );
           })}
+        </div>
         </div>
 
         {roomState.phase === 'INSURANCE' && insuranceHandsPending.length > 0 && (
