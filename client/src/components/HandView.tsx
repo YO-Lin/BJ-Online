@@ -67,7 +67,7 @@ export function HandView({
           <div
             key={i}
             className="seat-card-fan"
-            style={{ marginLeft: i === 0 ? 0 : -20, transform: `rotate(${(i - fanCenter) * 10}deg)` }}
+            style={{ marginLeft: i === 0 ? 0 : -12, transform: `rotate(${(i - fanCenter) * 10}deg)` }}
           >
             <CardView card={c} isNew={dealInfo[i]?.isNew} delayMs={dealInfo[i]?.delayMs} />
           </div>

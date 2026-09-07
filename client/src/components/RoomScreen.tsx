@@ -90,7 +90,6 @@ export function RoomScreen({
               <path id="arcDealerRule" d="M 90 280 Q 500 100 910 280" fill="none" />
               <path id="seatArc" d="M 50 390 Q 500 60 950 390" fill="none" />
             </defs>
-            <path d="M 50 390 Q 500 60 950 390" fill="none" stroke="#d4af37" strokeWidth="3" opacity="0.85" />
             <text fontSize="42" fill="#d4af37" textAnchor="middle" fontFamily="Georgia, serif" fontWeight="bold">
               <textPath href="#arcTitle" startOffset="50%">BLACK JACK</textPath>
             </text>
