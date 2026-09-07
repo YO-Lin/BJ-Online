@@ -86,20 +86,23 @@ export function RoomScreen({
           <svg className="table-svg" viewBox="0 0 1000 500" preserveAspectRatio="none">
             <defs>
               <path id="arcTitle" d="M 160 150 A 480 400 0 0 1 840 150" fill="none" />
-              <path id="arcMain" d="M 55 330 A 500 300 0 0 1 945 330" fill="none" />
+              <path id="arcDealerRule" d="M 90 280 Q 500 100 910 280" fill="none" />
+              <path id="seatArc" d="M 50 390 Q 500 60 950 390" fill="none" />
             </defs>
+            <path d="M 50 390 Q 500 60 950 390" fill="none" stroke="#d4af37" strokeWidth="3" opacity="0.85" />
             <text fontSize="42" fill="#d4af37" textAnchor="middle" fontFamily="Georgia, serif" fontWeight="bold">
               <textPath href="#arcTitle" startOffset="50%">BLACK JACK</textPath>
             </text>
             <text fontSize="20" fill="#c62828" textAnchor="middle" fontFamily="Georgia, serif" fontWeight="bold">
               <textPath href="#arcTitle" startOffset="50%" dy="32">PAYS 3 TO 2</textPath>
             </text>
-            <text fontSize="17" fill="#d4af37" textAnchor="middle" fontFamily="Georgia, serif" fontStyle="italic">
-              <textPath href="#arcMain" startOffset="50%">Dealer must stand on 17 and must draw to 16</textPath>
+            <text fontSize="15" fill="#d4af37" textAnchor="middle" fontFamily="Georgia, serif" fontStyle="italic">
+              <textPath href="#arcDealerRule" startOffset="50%">Dealer must stand on 17 and must draw to 16</textPath>
+            </text>
+            <text fontSize="15" fill="#0b3d24" textAnchor="middle" fontFamily="Georgia, serif" fontWeight="bold">
+              <textPath href="#seatArc" startOffset="50%">INSURANCE PAYS 2 TO 1</textPath>
             </text>
           </svg>
-          <div className="corner-text corner-text-left">2 TO 1</div>
-          <div className="corner-text corner-text-right">INSURANCE PAYS 2 TO 1</div>
 
           <div className="dealer-area">
             <div className="count-title">莊家</div>
@@ -112,7 +115,9 @@ export function RoomScreen({
 
           {Array.from({ length: roomState.maxHands }).map((_, seatIndex) => {
             const hand = roomState.hands[seatIndex];
-            const { left, top } = getSeatTransform(seatIndex, roomState.maxHands);
+            // Seats fill right-to-left: the first hand created sits in the rightmost slot.
+            const arcIndex = roomState.maxHands - 1 - seatIndex;
+            const { left, top } = getSeatTransform(arcIndex, roomState.maxHands);
             const seatStyle = {
               left: `${left}%`,
               top: `${top}%`,
@@ -120,7 +125,9 @@ export function RoomScreen({
             };
 
             if (!hand) {
-              return <div key={`empty-${seatIndex}`} className="seat-slot-empty" style={seatStyle} />;
+              return (
+                <div key={`empty-${seatIndex}`} className="seat-square seat-square-empty" style={seatStyle} />
+              );
             }
 
             const owner = roomState.players.find((p) => p.socketId === hand.ownerSocketId);

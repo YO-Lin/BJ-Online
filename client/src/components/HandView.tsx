@@ -58,37 +58,49 @@ export function HandView({
     });
   }
 
+  const fanCenter = (hand.cards.length - 1) / 2;
+
   return (
-    <div className={`hand-box ${isActive ? 'hand-active' : ''}`} style={style}>
-      <div className="hand-header">
-        <span>{ownerNickname}</span>
-        <span>下注 {hand.bet}</span>
-      </div>
-      <div className="cards-row">
+    <div className={`seat-column ${isActive ? 'seat-active' : ''}`} style={style}>
+      <div className="seat-cards">
         {hand.cards.map((c, i) => (
-          <CardView key={i} card={c} isNew={dealInfo[i]?.isNew} delayMs={dealInfo[i]?.delayMs} />
+          <div
+            key={i}
+            className="seat-card-fan"
+            style={{ marginLeft: i === 0 ? 0 : -20, transform: `rotate(${(i - fanCenter) * 10}deg)` }}
+          >
+            <CardView card={c} isNew={dealInfo[i]?.isNew} delayMs={dealInfo[i]?.delayMs} />
+          </div>
         ))}
       </div>
-      <div className="hand-footer">
-        <span>{total}</span>
-        <span>{STATUS_LABEL[hand.status] ?? hand.status}</span>
-        {hand.result && <span className="result-badge">{RESULT_LABEL[hand.result]}</span>}
+
+      <div className="seat-square">
+        <div className="seat-chip">{hand.bet}</div>
       </div>
-      {isMine && isActive && (
-        <div className="action-row">
-          <button onClick={() => act('hit')}>要牌</button>
-          <button onClick={() => act('stand')}>停牌</button>
-          <button disabled={!canDouble} onClick={() => act('double')}>加倍</button>
-          <button disabled={!canSplit} onClick={() => act('split')}>分牌</button>
+
+      <div className="seat-info">
+        <div className="seat-name">{ownerNickname}{isMine ? '（我）' : ''}</div>
+        <div className="seat-total">
+          <span>{total}</span>
+          <span>{STATUS_LABEL[hand.status] ?? hand.status}</span>
+          {hand.result && <span className="result-badge">{RESULT_LABEL[hand.result]}</span>}
         </div>
-      )}
-      {isMine && (
-        <div className="hint-row">
-          {hint ? <span className="hint-text">建議：{hint}</span> : (
-            <button className="hint-btn" onClick={requestHint}>顯示策略建議</button>
-          )}
-        </div>
-      )}
+        {isMine && isActive && (
+          <div className="action-row">
+            <button onClick={() => act('hit')}>要牌</button>
+            <button onClick={() => act('stand')}>停牌</button>
+            <button disabled={!canDouble} onClick={() => act('double')}>加倍</button>
+            <button disabled={!canSplit} onClick={() => act('split')}>分牌</button>
+          </div>
+        )}
+        {isMine && (
+          <div className="hint-row">
+            {hint ? <span className="hint-text">建議：{hint}</span> : (
+              <button className="hint-btn" onClick={requestHint}>顯示策略建議</button>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

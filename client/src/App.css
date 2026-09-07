@@ -197,13 +197,14 @@ button {
 .table-felt {
   position: relative;
   width: 100%;
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
   aspect-ratio: 1.55 / 1;
   background: #0b3d24;
   border: 6px solid #1e6b42;
   border-radius: 50% / 26%;
-  overflow: hidden;
+  overflow: visible;
+  margin-bottom: 90px;
 }
 
 .table-svg {
@@ -215,23 +216,6 @@ button {
   pointer-events: none;
 }
 
-.corner-text {
-  position: absolute;
-  top: 92%;
-  color: #c62828;
-  font-weight: 700;
-  font-family: Georgia, serif;
-  font-size: clamp(9px, 1.4vw, 14px);
-  z-index: 1;
-}
-.corner-text-left {
-  left: 4%;
-  transform: rotate(-6deg);
-}
-.corner-text-right {
-  right: 4%;
-  transform: rotate(6deg);
-}
 
 .dealer-area {
   position: absolute;
@@ -242,15 +226,6 @@ button {
   border-radius: 8px;
   padding: 8px 16px;
   text-align: center;
-  z-index: 2;
-}
-
-.seat-slot-empty {
-  position: absolute;
-  width: clamp(48px, 9vw, 84px);
-  height: clamp(48px, 9vw, 84px);
-  border: 2px dashed rgba(255, 255, 255, 0.6);
-  border-radius: 8px;
   z-index: 2;
 }
 
@@ -269,31 +244,85 @@ button {
   align-items: center;
 }
 
-.hand-box {
+/* Seats */
+.seat-column {
   position: absolute;
   z-index: 2;
-  background: rgba(15, 74, 44, 0.95);
-  border: 1px solid #1e6b42;
-  border-radius: 8px;
-  padding: 8px;
-  width: clamp(120px, 18vw, 170px);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  align-items: center;
+  width: clamp(90px, 13vw, 130px);
 }
-.hand-box .card {
-  width: clamp(28px, 4vw, 40px);
-  height: auto;
+
+.seat-cards {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 6px;
 }
-.hand-active {
+.seat-card-fan .card {
+  width: clamp(30px, 4.5vw, 44px);
+}
+.seat-card-fan {
+  transition: transform 150ms ease-out;
+}
+
+.seat-square {
+  width: clamp(48px, 8vw, 68px);
+  height: clamp(56px, 9vw, 78px);
+  border: 2px solid #d4af37;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.12);
+  flex-shrink: 0;
+}
+.seat-square-empty {
+  position: absolute;
+  border-style: dashed;
+  opacity: 0.7;
+}
+
+.seat-chip {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #1a1a1a;
+  border: 2px dashed #d4af37;
+  color: #f1f1f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.seat-info {
+  margin-top: 6px;
+  background: rgba(15, 74, 44, 0.92);
+  border: 1px solid #1e6b42;
+  border-radius: 8px;
+  padding: 6px 8px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+.seat-active .seat-info {
   border-color: #d4af37;
   box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.4);
 }
-
-.hand-header, .hand-footer {
+.seat-name {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.seat-total {
   display: flex;
   justify-content: space-between;
-  font-size: 13px;
+  gap: 4px;
 }
 
 .result-badge {
