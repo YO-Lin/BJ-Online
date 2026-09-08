@@ -11,6 +11,7 @@ const RESULT_LABEL: Record<string, string> = {
   BLACKJACK_WIN: '21點！',
   INSURANCE_WIN: '保險理賠',
   SURRENDER: '投降',
+  EVEN_MONEY: '等額1:1',
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -21,6 +22,7 @@ const STATUS_LABEL: Record<string, string> = {
   DOUBLED: '已加倍',
   BLACKJACK: '21點',
   SURRENDERED: '已投降',
+  EVEN_MONEY: '已拿等額1:1',
   DONE: '完成',
 };
 

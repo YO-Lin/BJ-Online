@@ -30,6 +30,8 @@ export function placeBet(room, socketId, amount) {
     splitDepth: 0,
     isSplitAces: false,
     insuranceBet: null,
+    evenMoneyEligible: false,
+    evenMoneyTaken: null,
     result: null,
   };
   room.hands.push(hand);
@@ -60,9 +62,25 @@ export function startRound(room) {
     if (isBlackjack(hand.cards)) hand.status = 'BLACKJACK';
   }
 
+  // Even money: a natural blackjack can lock in a guaranteed 1:1 payout right now
+  // instead of waiting to see if the dealer also has blackjack (which would push).
+  // Offered whenever the dealer's up card is an Ace or any 10-value card.
   const up = dealerUpCard(room.dealerHand);
+  const evenMoneyEligible = ['A', '10', 'J', 'Q', 'K'].includes(up.rank);
+  for (const hand of room.hands) {
+    // Tracked separately from `status` because taking even money changes the
+    // hand's status away from 'BLACKJACK', but this flag must keep remembering
+    // "this hand needed an even-money decision, not an insurance one."
+    hand.evenMoneyEligible = hand.status === 'BLACKJACK' && evenMoneyEligible;
+    hand.evenMoneyTaken = hand.evenMoneyEligible ? null : false;
+  }
+
   if (up.rank === 'A') {
     room.phase = 'INSURANCE';
+    return;
+  }
+  if (room.hands.some((h) => h.evenMoneyTaken === null)) {
+    room.phase = 'EVEN_MONEY';
     return;
   }
   beginPlayerTurns(room);
@@ -77,19 +95,36 @@ function dealVisibleCard(room, targetCards) {
 export function decideInsurance(room, socketId, handId, takeInsurance) {
   assertPhase(room, 'INSURANCE');
   const hand = findOwnedHand(room, socketId, handId);
+  if (hand.evenMoneyEligible) throw new GameError('這手牌是Blackjack，請用等額支付決定');
   if (hand.insuranceBet !== null) throw new GameError('已經做過保險決定');
   hand.insuranceBet = takeInsurance ? Math.floor(hand.bet / 2) : 0;
-
-  const allDecided = room.hands.every((h) => h.insuranceBet !== null);
-  if (allDecided) {
-    resolveInsurancePhase(room);
-  }
+  checkSettlementPhaseComplete(room);
 }
 
-// No early peek: insurance bets are placed blind and settled at resolveRound()
-// once the dealer's hole card is actually dealt (see runDealerTurn).
-function resolveInsurancePhase(room) {
-  beginPlayerTurns(room);
+export function decideEvenMoney(room, socketId, handId, takeEvenMoney) {
+  if (room.phase !== 'INSURANCE' && room.phase !== 'EVEN_MONEY') {
+    throw new GameError('現在不是可以決定等額支付的時機');
+  }
+  const hand = findOwnedHand(room, socketId, handId);
+  if (hand.status !== 'BLACKJACK') throw new GameError('這手牌沒有資格拿等額支付');
+  if (hand.evenMoneyTaken !== null) throw new GameError('已經做過等額支付的決定');
+  hand.evenMoneyTaken = takeEvenMoney;
+  if (takeEvenMoney) hand.status = 'EVEN_MONEY';
+  checkSettlementPhaseComplete(room);
+}
+
+// No early peek: insurance bets / even-money choices are made blind and settled at
+// resolveRound() once the dealer's hole card is actually dealt (see runDealerTurn).
+function checkSettlementPhaseComplete(room) {
+  if (room.phase === 'INSURANCE') {
+    const allDecided = room.hands.every((h) =>
+      h.evenMoneyEligible ? h.evenMoneyTaken !== null : h.insuranceBet !== null
+    );
+    if (allDecided) beginPlayerTurns(room);
+  } else if (room.phase === 'EVEN_MONEY') {
+    const allDecided = room.hands.every((h) => h.evenMoneyTaken !== null);
+    if (allDecided) beginPlayerTurns(room);
+  }
 }
 
 function beginPlayerTurns(room) {
@@ -192,6 +227,8 @@ export function split(room, socketId, handId) {
     splitDepth: hand.splitDepth,
     isSplitAces: isAceSplit,
     insuranceBet: null,
+    evenMoneyEligible: false,
+    evenMoneyTaken: false,
     result: null,
   };
 
@@ -244,6 +281,9 @@ export function resolveRound(room) {
       handResult = { result: 'LOSS', payout: -hand.bet };
     } else if (hand.status === 'SURRENDERED') {
       handResult = { result: 'SURRENDER', payout: -Math.floor(hand.bet / 2) };
+    } else if (hand.status === 'EVEN_MONEY') {
+      // Locked in already — 1:1 regardless of how the dealer's hand actually turns out.
+      handResult = { result: 'EVEN_MONEY', payout: hand.bet };
     } else {
       handResult = resolveHand(hand, room.dealerHand, dealerHasBlackjack);
     }

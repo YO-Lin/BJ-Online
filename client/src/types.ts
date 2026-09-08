@@ -4,9 +4,9 @@ export type Card = { rank: Rank; suit: Suit };
 export type HiddenCard = { hidden: true };
 
 export type HandStatus =
-  | 'BETTING' | 'ACTING' | 'STAND' | 'BUST' | 'DOUBLED' | 'BLACKJACK' | 'SURRENDERED' | 'DONE';
+  | 'BETTING' | 'ACTING' | 'STAND' | 'BUST' | 'DOUBLED' | 'BLACKJACK' | 'SURRENDERED' | 'EVEN_MONEY' | 'DONE';
 
-export type HandResult = 'WIN' | 'LOSS' | 'PUSH' | 'BLACKJACK_WIN' | 'INSURANCE_WIN' | 'SURRENDER' | null;
+export type HandResult = 'WIN' | 'LOSS' | 'PUSH' | 'BLACKJACK_WIN' | 'INSURANCE_WIN' | 'SURRENDER' | 'EVEN_MONEY' | null;
 
 export interface HandState {
   id: string;
@@ -17,6 +17,7 @@ export interface HandState {
   splitDepth: number;
   isSplitAces: boolean;
   insuranceBet: number | null;
+  evenMoneyTaken: boolean | null;
   result: HandResult;
 }
 
@@ -27,7 +28,7 @@ export interface PlayerSeat {
   handIds: string[];
 }
 
-export type RoomPhase = 'WAITING_FOR_BETS' | 'INSURANCE' | 'PLAYER_TURNS' | 'DEALER_TURN' | 'PAYOUT';
+export type RoomPhase = 'WAITING_FOR_BETS' | 'INSURANCE' | 'EVEN_MONEY' | 'PLAYER_TURNS' | 'DEALER_TURN' | 'PAYOUT';
 
 export interface CountInfo {
   runningCount: number;

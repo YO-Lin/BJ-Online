@@ -1,7 +1,7 @@
 import { socketAuthMiddleware } from '../auth/authMiddleware.js';
 import { createRoom, getRoom, joinRoom, markDisconnected } from '../rooms/roomManager.js';
 import { serializeRoom } from './serialize.js';
-import { GameError, placeBet, startRound, decideInsurance, hit, stand, double, split, surrender, resolveRound, backToBetting } from '../game/roundStateMachine.js';
+import { GameError, placeBet, startRound, decideInsurance, decideEvenMoney, hit, stand, double, split, surrender, resolveRound, backToBetting } from '../game/roundStateMachine.js';
 import { applyChipDelta, findById } from '../db/usersRepo.js';
 import { resetShoe } from '../game/shoe.js';
 import { lookupAction } from '../game/basicStrategy.js';
@@ -106,6 +106,18 @@ export function attachSocketServer(io) {
       if (!room) return;
       try {
         decideInsurance(room, socket.id, payload?.handId, !!payload?.takeInsurance);
+        broadcastRoom(io, room);
+        settleIfDealerTurn(io, room);
+      } catch (err) {
+        handleError(socket, err);
+      }
+    });
+
+    socket.on('evenMoney:decide', (payload) => {
+      const room = getRoom(socket.data.roomId);
+      if (!room) return;
+      try {
+        decideEvenMoney(room, socket.id, payload?.handId, !!payload?.takeEvenMoney);
         broadcastRoom(io, room);
         settleIfDealerTurn(io, room);
       } catch (err) {

@@ -1,7 +1,7 @@
 import { trueCount } from '../game/hiLo.js';
 import { MAX_HANDS } from '../rooms/roomManager.js';
 
-const HOLE_HIDDEN_PHASES = new Set(['INSURANCE', 'PLAYER_TURNS']);
+const HOLE_HIDDEN_PHASES = new Set(['INSURANCE', 'EVEN_MONEY', 'PLAYER_TURNS']);
 
 export function serializeRoom(room) {
   const dealerCards = room.dealerHand
@@ -31,6 +31,7 @@ export function serializeRoom(room) {
       splitDepth: h.splitDepth,
       isSplitAces: h.isSplitAces,
       insuranceBet: h.insuranceBet,
+      evenMoneyTaken: h.evenMoneyTaken,
       result: h.result,
     })),
     dealerCards,

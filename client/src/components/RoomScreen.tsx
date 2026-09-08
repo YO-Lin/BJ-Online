@@ -11,6 +11,7 @@ import { getSeatTransform } from '../tableSeats';
 const PHASE_LABEL: Record<string, string> = {
   WAITING_FOR_BETS: '等待下注',
   INSURANCE: '保險決定中',
+  EVEN_MONEY: '等額支付決定中',
   PLAYER_TURNS: '玩家回合',
   DEALER_TURN: '莊家回合',
   PAYOUT: '結算中',
@@ -82,8 +83,12 @@ export function RoomScreen({
   function decideInsurance(handId: string, take: boolean) {
     socket.emit('insurance:decide', { handId, takeInsurance: take });
   }
+  function decideEvenMoney(handId: string, take: boolean) {
+    socket.emit('evenMoney:decide', { handId, takeEvenMoney: take });
+  }
 
-  const insuranceHandsPending = myHands.filter((h) => h.insuranceBet === null);
+  const insuranceHandsPending = myHands.filter((h) => h.status !== 'BLACKJACK' && h.insuranceBet === null);
+  const evenMoneyHandsPending = myHands.filter((h) => h.status === 'BLACKJACK' && h.evenMoneyTaken === null);
 
   return (
     <div className="room-screen">
@@ -179,6 +184,19 @@ export function RoomScreen({
                 <span>下注 {h.bet} 的手牌</span>
                 <button onClick={() => decideInsurance(h.id, true)}>買保險 ({Math.floor(h.bet / 2)})</button>
                 <button onClick={() => decideInsurance(h.id, false)}>不買</button>
+              </div>
+            ))}
+          </section>
+        )}
+
+        {(roomState.phase === 'INSURANCE' || roomState.phase === 'EVEN_MONEY') && evenMoneyHandsPending.length > 0 && (
+          <section className="insurance-box">
+            <p>你這手牌是 Blackjack！莊家明牌是 A 或 10 點牌，要不要先拿 1:1 的等額支付？</p>
+            {evenMoneyHandsPending.map((h) => (
+              <div key={h.id} className="insurance-row">
+                <span>下注 {h.bet} 的手牌</span>
+                <button onClick={() => decideEvenMoney(h.id, true)}>拿 1:1（贏 {h.bet}）</button>
+                <button onClick={() => decideEvenMoney(h.id, false)}>不要，正常結算</button>
               </div>
             ))}
           </section>
