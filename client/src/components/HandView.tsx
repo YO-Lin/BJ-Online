@@ -32,6 +32,7 @@ export function HandView({
   canSplit,
   style,
   dealOrders,
+  payout,
 }: {
   socket: Socket;
   hand: HandState;
@@ -42,6 +43,7 @@ export function HandView({
   canSplit: boolean;
   style?: CSSProperties;
   dealOrders: number[];
+  payout?: number;
 }) {
   const [hint, setHint] = useState<string | null>(null);
   const total = handTotalLabel(hand);
@@ -75,7 +77,12 @@ export function HandView({
       </div>
 
       <div className="seat-square">
-        <div className="seat-chip">{hand.bet}</div>
+        <div className={`seat-chip ${payout !== undefined && payout < 0 ? 'chip-collected' : ''}`}>
+          {hand.bet}
+        </div>
+        {payout !== undefined && payout > 0 && (
+          <div className="seat-chip seat-chip-win">+{payout}</div>
+        )}
       </div>
 
       <div className="seat-info">

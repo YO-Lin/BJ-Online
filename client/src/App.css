@@ -285,6 +285,7 @@ button {
 }
 
 .seat-square {
+  position: relative;
   width: clamp(50px, 8vw, 70px);
   height: clamp(58px, 9vw, 80px);
   border: 2px solid #d4af37;
@@ -313,6 +314,36 @@ button {
   justify-content: center;
   font-size: 13px;
   font-weight: 700;
+}
+
+/* Loss: the bet chip is swept off the table. */
+@keyframes chip-collect {
+  from { transform: translateY(0) scale(1); opacity: 1; }
+  to   { transform: translateY(60px) scale(0.5); opacity: 0; }
+}
+.chip-collected {
+  animation: chip-collect 700ms ease-in forwards;
+}
+
+/* Win: a second chip slides in beside the original to show the winnings. */
+@keyframes chip-win-in {
+  from { transform: translateY(-50%) translateX(-14px) scale(0.4); opacity: 0; }
+  to   { transform: translateY(-50%) translateX(0) scale(1); opacity: 1; }
+}
+.seat-chip-win {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  margin-left: 6px;
+  width: auto;
+  min-width: 42px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #1b5e20;
+  border-style: solid;
+  white-space: nowrap;
+  animation: chip-win-in 500ms ease-out both;
+  z-index: 3;
 }
 
 .seat-info {

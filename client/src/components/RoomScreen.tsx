@@ -30,6 +30,7 @@ export function RoomScreen({
   const [betAmountInput, setBetAmountInput] = useState('50');
   const betAmount = Number(betAmountInput) || 0;
   const [lastError, setLastError] = useState<string | null>(null);
+  const [payouts, setPayouts] = useState<Record<string, number>>({});
   // Real round-robin deal order: every seat's first card (slots 0..maxHands-1),
   // then the dealer's up card (slot maxHands), then every seat's second card
   // (slots maxHands+1..2*maxHands).
@@ -40,11 +41,22 @@ export function RoomScreen({
       setLastError(err.message);
       setTimeout(() => setLastError(null), 4000);
     }
+    function onRoundResult(payload: { results: { handId: string; payout: number }[] }) {
+      const next: Record<string, number> = {};
+      for (const r of payload.results) next[r.handId] = r.payout;
+      setPayouts(next);
+    }
     socket.on('error', onError);
+    socket.on('round:result', onRoundResult);
     return () => {
       socket.off('error', onError);
+      socket.off('round:result', onRoundResult);
     };
   }, [socket]);
+
+  useEffect(() => {
+    if (roomState.phase === 'WAITING_FOR_BETS') setPayouts({});
+  }, [roomState.phase]);
 
   const mySocketId = socket.id;
   const myHandIds = new Set(
@@ -152,6 +164,7 @@ export function RoomScreen({
                 }
                 style={seatStyle}
                 dealOrders={[seatIndex, roomState.maxHands + 1 + seatIndex]}
+                payout={payouts[hand.id]}
               />
             );
           })}
