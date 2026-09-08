@@ -416,6 +416,10 @@ button {
   font-size: 12.5px;
   min-width: 0;
 }
+.action-row button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 
 .hint-row {
   font-size: 12.5px;
