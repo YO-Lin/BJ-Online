@@ -28,7 +28,7 @@ export function useDealAnimation(
   cardCount: number,
   initialOrders: number[],
   staggerStepMs = 400,
-  batchStepMs = 650
+  batchStepMs = 950
 ): DealInfo[] {
   const prevLenRef = useRef(0);
   const seenRef = useRef<Set<number>>(new Set());

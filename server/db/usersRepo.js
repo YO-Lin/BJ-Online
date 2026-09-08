@@ -1,6 +1,8 @@
 import { pool } from './pool.js';
 
-const STARTING_BALANCE = 1000;
+export const DEFAULT_STARTING_BALANCE = 1000;
+export const MIN_STARTING_BALANCE = 100;
+export const MAX_STARTING_BALANCE = 1_000_000;
 
 export async function findByNickname(nickname) {
   const { rows } = await pool.query('SELECT * FROM users WHERE nickname = $1', [nickname]);
@@ -12,10 +14,10 @@ export async function findById(id) {
   return rows[0] || null;
 }
 
-export async function createUser(nickname, passwordHash) {
+export async function createUser(nickname, passwordHash, startingBalance = DEFAULT_STARTING_BALANCE) {
   const { rows } = await pool.query(
     'INSERT INTO users (nickname, password_hash, chip_balance) VALUES ($1, $2, $3) RETURNING *',
-    [nickname, passwordHash, STARTING_BALANCE]
+    [nickname, passwordHash, startingBalance]
   );
   return rows[0];
 }

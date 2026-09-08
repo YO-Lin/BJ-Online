@@ -15,8 +15,8 @@ async function post<T>(path: string, body: unknown): Promise<T> {
   return data;
 }
 
-export function register(nickname: string, password: string) {
-  return post<AuthResponse>('/register', { nickname, password });
+export function register(nickname: string, password: string, startingChips?: number) {
+  return post<AuthResponse>('/register', { nickname, password, startingChips });
 }
 
 export function login(nickname: string, password: string) {

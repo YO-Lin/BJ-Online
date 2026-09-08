@@ -5,6 +5,7 @@ export function AuthScreen({ onAuthed }: { onAuthed: (auth: AuthResponse) => voi
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [nickname, setNickname] = useState('');
   const [password, setPassword] = useState('');
+  const [startingChipsInput, setStartingChipsInput] = useState('1000');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -13,8 +14,10 @@ export function AuthScreen({ onAuthed }: { onAuthed: (auth: AuthResponse) => voi
     setError(null);
     setBusy(true);
     try {
-      const fn = mode === 'login' ? login : register;
-      const result = await fn(nickname.trim(), password);
+      const result =
+        mode === 'login'
+          ? await login(nickname.trim(), password)
+          : await register(nickname.trim(), password, Number(startingChipsInput) || undefined);
       onAuthed(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : '發生錯誤');
@@ -39,6 +42,18 @@ export function AuthScreen({ onAuthed }: { onAuthed: (auth: AuthResponse) => voi
           密碼
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={4} />
         </label>
+        {mode === 'register' && (
+          <label>
+            起始籌碼
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={startingChipsInput}
+              onChange={(e) => setStartingChipsInput(e.target.value.replace(/[^0-9]/g, ''))}
+            />
+          </label>
+        )}
         {error && <p className="error-text">{error}</p>}
         <button type="submit" className="primary" disabled={busy}>
           {mode === 'login' ? '登入' : '註冊並登入'}
