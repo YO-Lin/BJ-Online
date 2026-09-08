@@ -30,6 +30,7 @@ export function serializeRoom(room) {
       status: h.status,
       splitDepth: h.splitDepth,
       isSplitAces: h.isSplitAces,
+      wasDoubled: h.wasDoubled,
       insuranceBet: h.insuranceBet,
       evenMoneyTaken: h.evenMoneyTaken,
       result: h.result,

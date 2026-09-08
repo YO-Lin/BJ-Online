@@ -81,8 +81,19 @@ export function HandView({
       </div>
 
       <div className="seat-square">
-        <div className={`seat-chip ${payout !== undefined && payout < 0 ? 'chip-collected' : ''}`}>
-          {hand.bet}
+        <div className="chip-stack">
+          {/* Doubling down places a second matching stack beside the original
+              bet, same as a real table, instead of just showing one chip with
+              the combined number. wasDoubled persists even if the hand later
+              busts, so the stack doesn't collapse back to one chip. */}
+          {(hand.wasDoubled ? [hand.bet / 2, hand.bet / 2] : [hand.bet]).map((amount, i) => (
+            <div
+              key={i}
+              className={`seat-chip ${payout !== undefined && payout < 0 ? 'chip-collected' : ''}`}
+            >
+              {amount}
+            </div>
+          ))}
         </div>
         {payout !== undefined && payout > 0 && (
           <div className="seat-chip seat-chip-win">+{payout}</div>

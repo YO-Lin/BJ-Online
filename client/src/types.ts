@@ -16,6 +16,7 @@ export interface HandState {
   status: HandStatus;
   splitDepth: number;
   isSplitAces: boolean;
+  wasDoubled: boolean;
   insuranceBet: number | null;
   evenMoneyTaken: boolean | null;
   result: HandResult;

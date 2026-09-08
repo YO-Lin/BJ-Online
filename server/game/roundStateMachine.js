@@ -29,6 +29,7 @@ export function placeBet(room, socketId, amount) {
     status: 'BETTING',
     splitDepth: 0,
     isSplitAces: false,
+    wasDoubled: false,
     insuranceBet: null,
     evenMoneyEligible: false,
     evenMoneyTaken: null,
@@ -192,6 +193,7 @@ export function double(room, socketId, handId) {
   const hand = assertActiveHand(room, socketId, handId);
   if (!canDouble(hand)) throw new GameError('這手牌不能加倍');
   hand.bet *= 2;
+  hand.wasDoubled = true;
   hand.status = 'DOUBLED';
   dealVisibleCard(room, hand.cards);
   if (isBust(hand.cards)) hand.status = 'BUST';
@@ -226,6 +228,7 @@ export function split(room, socketId, handId) {
     status: 'ACTING',
     splitDepth: hand.splitDepth,
     isSplitAces: isAceSplit,
+    wasDoubled: false,
     insuranceBet: null,
     evenMoneyEligible: false,
     evenMoneyTaken: false,
