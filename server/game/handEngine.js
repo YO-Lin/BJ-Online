@@ -49,6 +49,12 @@ export function canDouble(hand) {
   return true;
 }
 
+// Surrender is only ever a valid choice on the hand's very first decision —
+// same eligibility as doubling (exactly 2 cards, not a split-aces hand).
+export function canSurrender(hand) {
+  return canDouble(hand);
+}
+
 export function dealerUpCard(dealerHand) {
   return dealerHand.cards[0];
 }

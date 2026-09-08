@@ -4,9 +4,9 @@ export type Card = { rank: Rank; suit: Suit };
 export type HiddenCard = { hidden: true };
 
 export type HandStatus =
-  | 'BETTING' | 'ACTING' | 'STAND' | 'BUST' | 'DOUBLED' | 'BLACKJACK' | 'DONE';
+  | 'BETTING' | 'ACTING' | 'STAND' | 'BUST' | 'DOUBLED' | 'BLACKJACK' | 'SURRENDERED' | 'DONE';
 
-export type HandResult = 'WIN' | 'LOSS' | 'PUSH' | 'BLACKJACK_WIN' | 'INSURANCE_WIN' | null;
+export type HandResult = 'WIN' | 'LOSS' | 'PUSH' | 'BLACKJACK_WIN' | 'INSURANCE_WIN' | 'SURRENDER' | null;
 
 export interface HandState {
   id: string;

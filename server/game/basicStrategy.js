@@ -91,5 +91,10 @@ function resolveDouble(action, hand, total) {
   if (action === 'DS') {
     return canDouble(hand) ? 'D' : 'S';
   }
+  if (action === 'RH') {
+    // Surrender is only ever a valid choice on the very first decision (the
+    // original 2-card hand) — once the player has hit, only Hit makes sense.
+    return hand.cards.length === 2 ? 'RH' : 'H';
+  }
   return action;
 }

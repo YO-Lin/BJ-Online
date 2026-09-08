@@ -1,7 +1,7 @@
 import { socketAuthMiddleware } from '../auth/authMiddleware.js';
 import { createRoom, getRoom, joinRoom, markDisconnected } from '../rooms/roomManager.js';
 import { serializeRoom } from './serialize.js';
-import { GameError, placeBet, startRound, decideInsurance, hit, stand, double, split, resolveRound, backToBetting } from '../game/roundStateMachine.js';
+import { GameError, placeBet, startRound, decideInsurance, hit, stand, double, split, surrender, resolveRound, backToBetting } from '../game/roundStateMachine.js';
 import { applyChipDelta, findById } from '../db/usersRepo.js';
 import { resetShoe } from '../game/shoe.js';
 import { lookupAction } from '../game/basicStrategy.js';
@@ -113,7 +113,7 @@ export function attachSocketServer(io) {
       }
     });
 
-    const actionMap = { hit, stand, double, split };
+    const actionMap = { hit, stand, double, split, surrender };
     for (const [event, fn] of Object.entries(actionMap)) {
       socket.on(`action:${event}`, (payload) => {
         const room = getRoom(socket.data.roomId);

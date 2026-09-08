@@ -10,6 +10,7 @@ const RESULT_LABEL: Record<string, string> = {
   PUSH: '平手',
   BLACKJACK_WIN: '21點！',
   INSURANCE_WIN: '保險理賠',
+  SURRENDER: '投降',
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -19,6 +20,7 @@ const STATUS_LABEL: Record<string, string> = {
   BUST: '爆牌',
   DOUBLED: '已加倍',
   BLACKJACK: '21點',
+  SURRENDERED: '已投降',
   DONE: '完成',
 };
 
@@ -98,6 +100,9 @@ export function HandView({
             <button onClick={() => act('stand')}>停牌</button>
             <button disabled={!canDouble} onClick={() => act('double')}>加倍</button>
             <button disabled={!canSplit} onClick={() => act('split')}>分牌</button>
+            {/* Surrender is only ever valid on the hand's first decision — same
+                eligibility as doubling, so canDouble is reused here. */}
+            <button disabled={!canDouble} onClick={() => act('surrender')}>投降</button>
           </div>
         )}
         {isMine && (

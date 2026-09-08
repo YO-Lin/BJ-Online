@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
 import { drawCard } from './shoe.js';
 import { revealCard } from './hiLo.js';
-import { handValue, isBust, isBlackjack, canSplit, canDouble, dealerUpCard } from './handEngine.js';
+import { handValue, isBust, isBlackjack, canSplit, canDouble, canSurrender, dealerUpCard } from './handEngine.js';
 import { resolveHand, resolveInsurance } from './payout.js';
 import { playDealerHand } from './dealerEngine.js';
 import { canAddHand, MAX_HANDS } from '../rooms/roomManager.js';
@@ -163,6 +163,13 @@ export function double(room, socketId, handId) {
   advanceTurn(room);
 }
 
+export function surrender(room, socketId, handId) {
+  const hand = assertActiveHand(room, socketId, handId);
+  if (!canSurrender(hand)) throw new GameError('這手牌不能投降');
+  hand.status = 'SURRENDERED';
+  advanceTurn(room);
+}
+
 export function split(room, socketId, handId) {
   const hand = assertActiveHand(room, socketId, handId);
   if (!canSplit(hand)) throw new GameError('這手牌不能分牌');
@@ -235,6 +242,8 @@ export function resolveRound(room) {
     let handResult;
     if (hand.status === 'BUST') {
       handResult = { result: 'LOSS', payout: -hand.bet };
+    } else if (hand.status === 'SURRENDERED') {
+      handResult = { result: 'SURRENDER', payout: -Math.floor(hand.bet / 2) };
     } else {
       handResult = resolveHand(hand, room.dealerHand, dealerHasBlackjack);
     }
