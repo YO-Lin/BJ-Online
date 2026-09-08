@@ -52,6 +52,14 @@ export function attachSocketServer(io) {
   io.use(socketAuthMiddleware);
 
   io.on('connection', (socket) => {
+    // Send the real balance the moment we connect — don't make the client wait
+    // until it joins a room. Without this, the lobby screen showed whatever
+    // chipBalance was cached in localStorage from the last login/register call,
+    // which goes stale the moment a round is actually played.
+    findById(socket.userId)
+      .then((user) => socket.emit('chip:update', { newBalance: user?.chip_balance ?? 0 }))
+      .catch((err) => console.error('Failed to send initial chip balance', err));
+
     socket.on('room:create', (_payload, ack) => {
       const room = createRoom();
       ack?.({ roomId: room.roomId });
