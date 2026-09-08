@@ -267,19 +267,25 @@ button {
 
 .insurance-box {
   flex: 0 0 auto;
-  background: #4a3a0f;
-  border: 1px solid #d4af37;
+  background: #0f4a2c;
+  border: 1px solid #1e6b42;
   border-radius: 8px;
-  padding: 8px 14px;
+  padding: 10px 14px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  font-size: 15px;
+  gap: 8px;
+  font-size: 14px;
+}
+.insurance-box p {
+  color: #d4af37;
+  font-weight: 600;
 }
 .insurance-row {
   display: flex;
-  gap: 8px;
+  justify-content: space-between;
   align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 /* Seats */

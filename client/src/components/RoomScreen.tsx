@@ -186,44 +186,40 @@ export function RoomScreen({
       </div>
 
       <div className="room-sidebar">
+        {roomState.phase === 'INSURANCE' && insuranceHandsPending.length > 0 && (
+          <section className="insurance-box">
+            <p>莊家明牌是 A，是否購買保險？（最高下注一半，理賠 2:1）</p>
+            {insuranceHandsPending.map((h) => (
+              <div key={h.id} className="insurance-row">
+                <span>下注 {h.bet} 的手牌</span>
+                <button onClick={() => decideInsurance(h.id, true)}>買保險 ({Math.floor(h.bet / 2)})</button>
+                <button onClick={() => decideInsurance(h.id, false)}>不買</button>
+              </div>
+            ))}
+          </section>
+        )}
+
+        {(roomState.phase === 'INSURANCE' || roomState.phase === 'EVEN_MONEY') && evenMoneyHandsPending.length > 0 && (
+          <section className="insurance-box">
+            <p>你這手牌是 Blackjack！莊家明牌是 A 或 10 點牌，要不要先拿 1:1 的等額支付？</p>
+            {evenMoneyHandsPending.map((h) => (
+              <div key={h.id} className="insurance-row">
+                <span>下注 {h.bet} 的手牌</span>
+                <button onClick={() => decideEvenMoney(h.id, true)}>拿 1:1（贏 {h.bet}）</button>
+                <button onClick={() => decideEvenMoney(h.id, false)}>不要，正常結算</button>
+              </div>
+            ))}
+          </section>
+        )}
+
         <CountDisplay count={roomState.count} />
         <HistoryLog history={roomState.historyLog} />
       </div>
 
-      {/* Floating overlay, positioned fixed so its content (which varies a lot in
-          height — anywhere from 0 to 7 rows of insurance/even-money prompts) never
-          affects the table's layout above it. */}
-      {(insuranceHandsPending.length > 0 ||
-        evenMoneyHandsPending.length > 0 ||
-        roomState.phase === 'WAITING_FOR_BETS' ||
-        roomState.phase === 'PAYOUT') && (
+      {/* Floating overlay, positioned fixed so its content never affects the
+          table's layout above it. */}
+      {(roomState.phase === 'WAITING_FOR_BETS' || roomState.phase === 'PAYOUT') && (
         <div className="action-overlay">
-          {roomState.phase === 'INSURANCE' && insuranceHandsPending.length > 0 && (
-            <section className="insurance-box">
-              <p>莊家明牌是 A，是否購買保險？（最高下注一半，理賠 2:1）</p>
-              {insuranceHandsPending.map((h) => (
-                <div key={h.id} className="insurance-row">
-                  <span>下注 {h.bet} 的手牌</span>
-                  <button onClick={() => decideInsurance(h.id, true)}>買保險 ({Math.floor(h.bet / 2)})</button>
-                  <button onClick={() => decideInsurance(h.id, false)}>不買</button>
-                </div>
-              ))}
-            </section>
-          )}
-
-          {(roomState.phase === 'INSURANCE' || roomState.phase === 'EVEN_MONEY') && evenMoneyHandsPending.length > 0 && (
-            <section className="insurance-box">
-              <p>你這手牌是 Blackjack！莊家明牌是 A 或 10 點牌，要不要先拿 1:1 的等額支付？</p>
-              {evenMoneyHandsPending.map((h) => (
-                <div key={h.id} className="insurance-row">
-                  <span>下注 {h.bet} 的手牌</span>
-                  <button onClick={() => decideEvenMoney(h.id, true)}>拿 1:1（贏 {h.bet}）</button>
-                  <button onClick={() => decideEvenMoney(h.id, false)}>不要，正常結算</button>
-                </div>
-              ))}
-            </section>
-          )}
-
           {roomState.phase === 'WAITING_FOR_BETS' && (
             <section className="bet-controls">
               <label>
