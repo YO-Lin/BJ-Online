@@ -5,7 +5,7 @@ import { CardView } from './CardView';
 import { HandView } from './HandView';
 import { CountDisplay } from './CountDisplay';
 import { HistoryLog } from './HistoryLog';
-import { useDealAnimation, CARD_SLOT_STRIDE } from '../hooks/useDealAnimation';
+import { useDealAnimation } from '../hooks/useDealAnimation';
 import { getSeatTransform } from '../tableSeats';
 
 const PHASE_LABEL: Record<string, string> = {
@@ -30,8 +30,10 @@ export function RoomScreen({
   const [betAmountInput, setBetAmountInput] = useState('50');
   const betAmount = Number(betAmountInput) || 0;
   const [lastError, setLastError] = useState<string | null>(null);
-  // Dealer always sorts after every seat (0..maxHands-1) so players deal in first.
-  const dealerDealInfo = useDealAnimation(roomState.dealerCards.length, roomState.maxHands * CARD_SLOT_STRIDE);
+  // Real round-robin deal order: every seat's first card (slots 0..maxHands-1),
+  // then the dealer's up card (slot maxHands), then every seat's second card
+  // (slots maxHands+1..2*maxHands).
+  const dealerDealInfo = useDealAnimation(roomState.dealerCards.length, [roomState.maxHands]);
 
   useEffect(() => {
     function onError(err: { message: string }) {
@@ -149,7 +151,7 @@ export function RoomScreen({
                   totalHands < roomState.maxHands
                 }
                 style={seatStyle}
-                dealBaseOrder={seatIndex * CARD_SLOT_STRIDE}
+                dealOrders={[seatIndex, roomState.maxHands + 1 + seatIndex]}
               />
             );
           })}
