@@ -151,7 +151,7 @@ button {
   border-radius: 8px;
   padding: 6px 12px;
   border: 1px solid #1e6b42;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .error-banner {
@@ -175,7 +175,7 @@ button {
 }
 
 .card {
-  width: clamp(38px, 6vw, 58px);
+  width: clamp(48px, 7.5vw, 74px);
   height: auto;
   aspect-ratio: 0.68;
   border-radius: 6px;
@@ -254,7 +254,7 @@ button {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: 13px;
+  font-size: 15px;
 }
 .insurance-row {
   display: flex;
@@ -269,7 +269,7 @@ button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: clamp(70px, 11vw, 105px);
+  width: clamp(90px, 13vw, 130px);
 }
 
 .seat-cards {
@@ -278,15 +278,15 @@ button {
   margin-bottom: 6px;
 }
 .seat-card-fan .card {
-  width: clamp(30px, 5vw, 46px);
+  width: clamp(40px, 6.5vw, 60px);
 }
 .seat-card-fan {
   transition: transform 150ms ease-out;
 }
 
 .seat-square {
-  width: clamp(40px, 6.5vw, 56px);
-  height: clamp(46px, 7.5vw, 64px);
+  width: clamp(50px, 8vw, 70px);
+  height: clamp(58px, 9vw, 80px);
   border: 2px solid #d4af37;
   border-radius: 8px;
   display: flex;
@@ -302,8 +302,8 @@ button {
 }
 
 .seat-chip {
-  width: 34px;
-  height: 34px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   background: #1a1a1a;
   border: 2px dashed #d4af37;
@@ -311,7 +311,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
 }
 
@@ -320,12 +320,12 @@ button {
   background: rgba(15, 74, 44, 0.92);
   border: 1px solid #1e6b42;
   border-radius: 8px;
-  padding: 4px 6px;
+  padding: 6px 8px;
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  font-size: 10.5px;
+  gap: 4px;
+  font-size: 13px;
 }
 .seat-active .seat-info {
   border-color: #d4af37;
@@ -351,22 +351,22 @@ button {
 .action-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 3px;
+  gap: 4px;
 }
 .action-row button {
   flex: 1 1 40%;
-  padding: 3px;
-  font-size: 10px;
+  padding: 5px;
+  font-size: 12.5px;
   min-width: 0;
 }
 
 .hint-row {
-  font-size: 10.5px;
+  font-size: 12.5px;
 }
 .hint-btn {
   width: 100%;
-  padding: 4px;
-  font-size: 10px;
+  padding: 5px;
+  font-size: 12.5px;
 }
 .hint-text {
   color: #d4af37;
@@ -398,8 +398,8 @@ button {
   background: #14603a;
   border: 1px solid #1e6b42;
   border-radius: 999px;
-  padding: 4px 12px;
-  font-size: 13px;
+  padding: 5px 14px;
+  font-size: 14.5px;
 }
 .player-chip.disconnected {
   opacity: 0.5;
@@ -411,7 +411,7 @@ button {
   border: 1px solid #1e6b42;
   border-radius: 8px;
   padding: 10px 14px;
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .history-box {
@@ -432,7 +432,7 @@ button {
 .history-entry {
   border-top: 1px solid #1e6b42;
   padding-top: 6px;
-  font-size: 12px;
+  font-size: 13.5px;
 }
 .history-hand-line {
   color: #cde;
