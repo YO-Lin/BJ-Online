@@ -176,66 +176,6 @@ export function RoomScreen({
         </div>
         </div>
 
-        {roomState.phase === 'INSURANCE' && insuranceHandsPending.length > 0 && (
-          <section className="insurance-box">
-            <p>莊家明牌是 A，是否購買保險？（最高下注一半，理賠 2:1）</p>
-            {insuranceHandsPending.map((h) => (
-              <div key={h.id} className="insurance-row">
-                <span>下注 {h.bet} 的手牌</span>
-                <button onClick={() => decideInsurance(h.id, true)}>買保險 ({Math.floor(h.bet / 2)})</button>
-                <button onClick={() => decideInsurance(h.id, false)}>不買</button>
-              </div>
-            ))}
-          </section>
-        )}
-
-        {(roomState.phase === 'INSURANCE' || roomState.phase === 'EVEN_MONEY') && evenMoneyHandsPending.length > 0 && (
-          <section className="insurance-box">
-            <p>你這手牌是 Blackjack！莊家明牌是 A 或 10 點牌，要不要先拿 1:1 的等額支付？</p>
-            {evenMoneyHandsPending.map((h) => (
-              <div key={h.id} className="insurance-row">
-                <span>下注 {h.bet} 的手牌</span>
-                <button onClick={() => decideEvenMoney(h.id, true)}>拿 1:1（贏 {h.bet}）</button>
-                <button onClick={() => decideEvenMoney(h.id, false)}>不要，正常結算</button>
-              </div>
-            ))}
-          </section>
-        )}
-
-        {roomState.phase === 'WAITING_FOR_BETS' && (
-          <section className="bet-controls">
-            <label>
-              下注金額
-              <input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                value={betAmountInput}
-                onChange={(e) => setBetAmountInput(e.target.value.replace(/[^0-9]/g, ''))}
-              />
-            </label>
-            <button
-              className="primary"
-              disabled={totalHands >= roomState.maxHands || betAmount <= 0 || betAmount > chipBalance}
-              onClick={placeBet}
-            >
-              下注（可多次下注開多手）
-            </button>
-            <button className="primary" disabled={totalHands === 0} onClick={startRound}>
-              開始發牌
-            </button>
-            <button onClick={resetShoe}>重置牌靴（洗回6副牌）</button>
-          </section>
-        )}
-
-        {roomState.phase === 'PAYOUT' && (
-          <section className="bet-controls">
-            <button className="primary" onClick={continueToNextRound}>
-              確認，開始下一局
-            </button>
-          </section>
-        )}
-
         <section className="players-list">
           {roomState.players.map((p) => (
             <span key={p.socketId} className={`player-chip ${p.connected ? '' : 'disconnected'}`}>
@@ -249,6 +189,76 @@ export function RoomScreen({
         <CountDisplay count={roomState.count} />
         <HistoryLog history={roomState.historyLog} />
       </div>
+
+      {/* Floating overlay, positioned fixed so its content (which varies a lot in
+          height — anywhere from 0 to 7 rows of insurance/even-money prompts) never
+          affects the table's layout above it. */}
+      {(insuranceHandsPending.length > 0 ||
+        evenMoneyHandsPending.length > 0 ||
+        roomState.phase === 'WAITING_FOR_BETS' ||
+        roomState.phase === 'PAYOUT') && (
+        <div className="action-overlay">
+          {roomState.phase === 'INSURANCE' && insuranceHandsPending.length > 0 && (
+            <section className="insurance-box">
+              <p>莊家明牌是 A，是否購買保險？（最高下注一半，理賠 2:1）</p>
+              {insuranceHandsPending.map((h) => (
+                <div key={h.id} className="insurance-row">
+                  <span>下注 {h.bet} 的手牌</span>
+                  <button onClick={() => decideInsurance(h.id, true)}>買保險 ({Math.floor(h.bet / 2)})</button>
+                  <button onClick={() => decideInsurance(h.id, false)}>不買</button>
+                </div>
+              ))}
+            </section>
+          )}
+
+          {(roomState.phase === 'INSURANCE' || roomState.phase === 'EVEN_MONEY') && evenMoneyHandsPending.length > 0 && (
+            <section className="insurance-box">
+              <p>你這手牌是 Blackjack！莊家明牌是 A 或 10 點牌，要不要先拿 1:1 的等額支付？</p>
+              {evenMoneyHandsPending.map((h) => (
+                <div key={h.id} className="insurance-row">
+                  <span>下注 {h.bet} 的手牌</span>
+                  <button onClick={() => decideEvenMoney(h.id, true)}>拿 1:1（贏 {h.bet}）</button>
+                  <button onClick={() => decideEvenMoney(h.id, false)}>不要，正常結算</button>
+                </div>
+              ))}
+            </section>
+          )}
+
+          {roomState.phase === 'WAITING_FOR_BETS' && (
+            <section className="bet-controls">
+              <label>
+                下注金額
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={betAmountInput}
+                  onChange={(e) => setBetAmountInput(e.target.value.replace(/[^0-9]/g, ''))}
+                />
+              </label>
+              <button
+                className="primary"
+                disabled={totalHands >= roomState.maxHands || betAmount <= 0 || betAmount > chipBalance}
+                onClick={placeBet}
+              >
+                下注（可多次下注開多手）
+              </button>
+              <button className="primary" disabled={totalHands === 0} onClick={startRound}>
+                開始發牌
+              </button>
+              <button onClick={resetShoe}>重置牌靴（洗回6副牌）</button>
+            </section>
+          )}
+
+          {roomState.phase === 'PAYOUT' && (
+            <section className="bet-controls">
+              <button className="primary" onClick={continueToNextRound}>
+                確認，開始下一局
+              </button>
+            </section>
+          )}
+        </div>
+      )}
     </div>
   );
 }
