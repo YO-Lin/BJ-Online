@@ -48,6 +48,21 @@ async function settleIfDealerTurn(io, room) {
   broadcastRoom(io, room);
 }
 
+// Broadcasts the room exactly once after an action. If the action just ended the
+// round (phase is now DEALER_TURN), let settleIfDealerTurn do the one broadcast at
+// the end (after it resolves payouts) instead of also broadcasting here first —
+// two back-to-back 'room:state' events for the same dealer-cards change caused the
+// client's deal-animation to reset a still-pending card's "new" flag before its
+// staggered CSS animation ever got to play, making it pop in instantly instead of
+// sliding in with the intended pause.
+async function broadcastOrSettle(io, room) {
+  if (room.phase === 'DEALER_TURN') {
+    await settleIfDealerTurn(io, room);
+  } else {
+    broadcastRoom(io, room);
+  }
+}
+
 export function attachSocketServer(io) {
   io.use(socketAuthMiddleware);
 
@@ -124,8 +139,7 @@ export function attachSocketServer(io) {
       if (!room) return;
       try {
         startRound(room);
-        broadcastRoom(io, room);
-        settleIfDealerTurn(io, room);
+        broadcastOrSettle(io, room);
         ack?.({ ok: true });
       } catch (err) {
         handleError(socket, err);
@@ -138,8 +152,7 @@ export function attachSocketServer(io) {
       if (!room) return;
       try {
         decideInsurance(room, socket.id, payload?.handId, !!payload?.takeInsurance);
-        broadcastRoom(io, room);
-        settleIfDealerTurn(io, room);
+        broadcastOrSettle(io, room);
       } catch (err) {
         handleError(socket, err);
       }
@@ -150,8 +163,7 @@ export function attachSocketServer(io) {
       if (!room) return;
       try {
         decideEvenMoney(room, socket.id, payload?.handId, !!payload?.takeEvenMoney);
-        broadcastRoom(io, room);
-        settleIfDealerTurn(io, room);
+        broadcastOrSettle(io, room);
       } catch (err) {
         handleError(socket, err);
       }
@@ -164,8 +176,7 @@ export function attachSocketServer(io) {
         if (!room) return;
         try {
           fn(room, socket.id, payload?.handId);
-          broadcastRoom(io, room);
-          settleIfDealerTurn(io, room);
+          broadcastOrSettle(io, room);
         } catch (err) {
           handleError(socket, err);
         }
