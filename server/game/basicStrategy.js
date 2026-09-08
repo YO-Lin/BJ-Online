@@ -20,8 +20,8 @@ export const HARD_TOTALS = {
   12: row(['H', 'H', 'S', 'S', 'S', 'H', 'H', 'H', 'H', 'H']),
   13: row(['S', 'S', 'S', 'S', 'S', 'H', 'H', 'H', 'H', 'H']),
   14: row(['S', 'S', 'S', 'S', 'S', 'H', 'H', 'H', 'H', 'H']),
-  15: row(['S', 'S', 'S', 'S', 'S', 'H', 'H', 'H', 'H', 'H']),
-  16: row(['S', 'S', 'S', 'S', 'S', 'H', 'H', 'H', 'H', 'H']),
+  15: row(['S', 'S', 'S', 'S', 'S', 'H', 'H', 'H', 'RH', 'H']),
+  16: row(['S', 'S', 'S', 'S', 'S', 'H', 'H', 'RH', 'RH', 'H']),
   17: row(['S', 'S', 'S', 'S', 'S', 'S', 'S', 'S', 'S', 'S']),
 };
 
@@ -56,7 +56,9 @@ function dealerCol(upCard) {
 }
 
 // hand: { cards, splitDepth, isSplitAces }, dealerUp: card
-// Returns one of 'H' | 'S' | 'D' | 'P' (already resolved for D/DS fallback)
+// Returns one of 'H' | 'S' | 'D' | 'P' | 'RH' (already resolved for D/DS fallback;
+// 'RH' = Surrender if allowed else Hit — shown as-is since this game doesn't offer
+// surrender, it's purely informational for the player).
 export function lookupAction(hand, dealerUp) {
   const col = dealerCol(dealerUp);
   const { total, soft } = handValue(hand.cards);
