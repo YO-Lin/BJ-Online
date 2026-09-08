@@ -27,7 +27,8 @@ export function RoomScreen({
   chipBalance: number;
   onLeave: () => void;
 }) {
-  const [betAmount, setBetAmount] = useState(50);
+  const [betAmountInput, setBetAmountInput] = useState('50');
+  const betAmount = Number(betAmountInput) || 0;
   const [lastError, setLastError] = useState<string | null>(null);
   // Dealer always sorts after every seat (0..maxHands-1) so players deal in first.
   const dealerDealInfo = useDealAnimation(roomState.dealerCards.length, roomState.maxHands * CARD_SLOT_STRIDE);
@@ -173,11 +174,11 @@ export function RoomScreen({
             <label>
               下注金額
               <input
-                type="number"
-                min={1}
-                max={chipBalance}
-                value={betAmount}
-                onChange={(e) => setBetAmount(Number(e.target.value))}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={betAmountInput}
+                onChange={(e) => setBetAmountInput(e.target.value.replace(/[^0-9]/g, ''))}
               />
             </label>
             <button

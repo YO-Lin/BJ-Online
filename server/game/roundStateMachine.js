@@ -44,33 +44,26 @@ export function startRound(room) {
   room.roundNumber += 1;
   room.dealerHand = { cards: [] };
 
-  // Deal two cards to each hand, then two to the dealer (first up, second hole).
+  // Deal order: one card to each hand, then the dealer's up card, then a second
+  // card to each hand. The dealer's second (hole) card is only drawn once all
+  // players have finished acting (see runDealerTurn) — there is no early peek.
   for (const hand of room.hands) {
-    dealVisibleCard(room, hand.cards);
     dealVisibleCard(room, hand.cards);
     hand.status = 'ACTING';
   }
-  const up = drawCard(room.shoe);
-  room.dealerHand.cards.push(up);
-  revealCard(room, up); // up-card is visible immediately
-  const hole = drawCard(room.shoe); // hole card, not revealed/counted yet
-  room.dealerHand.cards.push(hole);
+  dealVisibleCard(room, room.dealerHand.cards);
+  for (const hand of room.hands) {
+    dealVisibleCard(room, hand.cards);
+  }
 
   for (const hand of room.hands) {
     if (isBlackjack(hand.cards)) hand.status = 'BLACKJACK';
   }
 
-  const up_ = dealerUpCard(room.dealerHand);
-  if (up_.rank === 'A') {
+  const up = dealerUpCard(room.dealerHand);
+  if (up.rank === 'A') {
     room.phase = 'INSURANCE';
     return;
-  }
-  if (['10', 'J', 'Q', 'K'].includes(up_.rank)) {
-    // Silent peek, no insurance offer.
-    if (isBlackjack(room.dealerHand.cards)) {
-      finishWithDealerBlackjack(room);
-      return;
-    }
   }
   beginPlayerTurns(room);
 }
@@ -93,18 +86,10 @@ export function decideInsurance(room, socketId, handId, takeInsurance) {
   }
 }
 
+// No early peek: insurance bets are placed blind and settled at resolveRound()
+// once the dealer's hole card is actually dealt (see runDealerTurn).
 function resolveInsurancePhase(room) {
-  if (isBlackjack(room.dealerHand.cards)) {
-    finishWithDealerBlackjack(room);
-  } else {
-    beginPlayerTurns(room);
-  }
-}
-
-function finishWithDealerBlackjack(room) {
-  // Reveal hole card now since the round is ending.
-  revealCard(room, room.dealerHand.cards[1]);
-  room.phase = 'DEALER_TURN'; // transient, immediately resolved by caller via resolveRound
+  beginPlayerTurns(room);
 }
 
 function beginPlayerTurns(room) {
@@ -226,12 +211,15 @@ export function split(room, socketId, handId) {
 
 function runDealerTurn(room) {
   room.phase = 'DEALER_TURN';
+
+  // The dealer's second card is dealt now, only after every player has finished.
+  const hole = drawCard(room.shoe);
+  room.dealerHand.cards.push(hole);
+  revealCard(room, hole);
+
   const anyLive = room.hands.some((h) => h.status === 'STAND' || h.status === 'DOUBLED');
   if (anyLive) {
-    revealCard(room, room.dealerHand.cards[1]);
     playDealerHand(room);
-  } else {
-    revealCard(room, room.dealerHand.cards[1]);
   }
 }
 

@@ -13,7 +13,7 @@ export const CARD_SLOT_STRIDE = 12;
 // so the deal order (players first, dealer last) doesn't depend on React's hook-call
 // order — the caller picks baseOrder (e.g. seatIndex * CARD_SLOT_STRIDE for a hand,
 // maxHands * CARD_SLOT_STRIDE for the dealer, which always sorts after every seat).
-export function useDealAnimation(cardCount: number, baseOrder: number, staggerStepMs = 350): DealInfo[] {
+export function useDealAnimation(cardCount: number, baseOrder: number, staggerStepMs = 550): DealInfo[] {
   const prevLenRef = useRef(0);
   const seenRef = useRef<Set<number>>(new Set());
 
