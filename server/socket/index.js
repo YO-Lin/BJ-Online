@@ -2,7 +2,12 @@ import { socketAuthMiddleware } from '../auth/authMiddleware.js';
 import { createRoom, getRoom, joinRoom, markDisconnected } from '../rooms/roomManager.js';
 import { serializeRoom } from './serialize.js';
 import { GameError, placeBet, startRound, decideInsurance, decideEvenMoney, hit, stand, double, split, surrender, resolveRound, backToBetting } from '../game/roundStateMachine.js';
-import { applyChipDelta, findById } from '../db/usersRepo.js';
+import {
+  applyChipDelta,
+  findById,
+  MIN_STARTING_BALANCE,
+  MAX_STARTING_BALANCE,
+} from '../db/usersRepo.js';
 import { resetShoe } from '../game/shoe.js';
 import { lookupAction } from '../game/basicStrategy.js';
 import { dealerUpCard } from '../game/handEngine.js';
@@ -64,6 +69,25 @@ export function attachSocketServer(io) {
         ack?.({ ok: true, roomState: serializeRoom(room) });
         broadcastRoom(io, room);
       } catch (err) {
+        ack?.({ error: err.message });
+      }
+    });
+
+    // Lets an existing account top up its chip balance (this is a practice site,
+    // not real money, and there was previously no way to recover once a returning
+    // player's balance hit 0 — new accounts could pick a starting amount, old ones
+    // had no equivalent).
+    socket.on('chip:topup', async (payload, ack) => {
+      try {
+        const amount = Number(payload?.amount);
+        if (!Number.isInteger(amount) || amount < MIN_STARTING_BALANCE || amount > MAX_STARTING_BALANCE) {
+          throw new GameError(`儲值金額要介於 ${MIN_STARTING_BALANCE} 到 ${MAX_STARTING_BALANCE} 之間的整數`);
+        }
+        const newBalance = await applyChipDelta(socket.userId, amount);
+        socket.emit('chip:update', { newBalance });
+        ack?.({ ok: true, newBalance });
+      } catch (err) {
+        handleError(socket, err);
         ack?.({ error: err.message });
       }
     });

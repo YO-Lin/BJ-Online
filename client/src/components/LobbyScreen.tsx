@@ -15,6 +15,9 @@ export function LobbyScreen({
   const [joinCode, setJoinCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [topUpInput, setTopUpInput] = useState('1000');
+  const [topUpBusy, setTopUpBusy] = useState(false);
+  const [topUpError, setTopUpError] = useState<string | null>(null);
 
   function createRoom() {
     setBusy(true);
@@ -31,6 +34,17 @@ export function LobbyScreen({
       setBusy(false);
       if (res.error) setError(res.error);
       else onJoined(roomId);
+    });
+  }
+
+  function topUp() {
+    const amount = Number(topUpInput);
+    if (!amount) return;
+    setTopUpBusy(true);
+    setTopUpError(null);
+    socket.emit('chip:topup', { amount }, (res: { ok?: boolean; error?: string }) => {
+      setTopUpBusy(false);
+      if (res?.error) setTopUpError(res.error);
     });
   }
 
@@ -54,6 +68,21 @@ export function LobbyScreen({
           加入房間
         </button>
         {error && <p className="error-text">{error}</p>}
+        <div className="divider">籌碼不夠了？</div>
+        <label>
+          補充籌碼金額
+          <input
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            value={topUpInput}
+            onChange={(e) => setTopUpInput(e.target.value.replace(/[^0-9]/g, ''))}
+          />
+        </label>
+        <button disabled={topUpBusy || !Number(topUpInput)} onClick={topUp}>
+          儲值籌碼
+        </button>
+        {topUpError && <p className="error-text">{topUpError}</p>}
       </div>
     </div>
   );
