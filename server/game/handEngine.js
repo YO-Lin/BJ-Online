@@ -40,7 +40,7 @@ export function rankBucket(rank) {
 }
 
 export function canSplit(hand) {
-  return isPair(hand.cards) && hand.splitDepth < 3 && !hand.isSplitAces;
+  return isPair(hand.cards) && hand.splitDepth < 2 && !hand.isSplitAces;
 }
 
 export function canDouble(hand) {

@@ -171,7 +171,7 @@ export function RoomScreen({
                   // this specific hand has already been split.
                   hand.cards.length === 2 &&
                   hand.cards[0].rank === hand.cards[1].rank &&
-                  hand.splitDepth < 3 &&
+                  hand.splitDepth < 2 &&
                   !hand.isSplitAces
                 }
                 style={seatStyle}
