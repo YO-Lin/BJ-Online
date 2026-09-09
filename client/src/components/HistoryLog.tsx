@@ -2,6 +2,7 @@ import type { HistoryEntry } from '../types';
 
 const RESULT_LABEL: Record<string, string> = {
   WIN: '贏', LOSS: '輸', PUSH: '平手', BLACKJACK_WIN: '21點', INSURANCE_WIN: '保險',
+  SURRENDER: '投降', EVEN_MONEY: '等額1:1',
 };
 
 export function HistoryLog({ history }: { history: HistoryEntry[] }) {

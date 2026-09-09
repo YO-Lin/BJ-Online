@@ -169,7 +169,24 @@ export function attachSocketServer(io) {
       }
     });
 
-    const actionMap = { hit, stand, double, split, surrender };
+    // Surrender pays out immediately (see surrender()'s comment in roundStateMachine.js),
+    // so it needs its own handler to apply the chip delta — unlike hit/stand/double/split
+    // below, which never touch chip balances themselves.
+    socket.on('action:surrender', async (payload) => {
+      const room = getRoom(socket.data.roomId);
+      if (!room) return;
+      try {
+        const payout = surrender(room, socket.id, payload?.handId);
+        const seat = room.players.get(socket.id);
+        const newBalance = await applyChipDelta(seat.userId, payout);
+        socket.emit('chip:update', { newBalance });
+        await broadcastOrSettle(io, room);
+      } catch (err) {
+        handleError(socket, err);
+      }
+    });
+
+    const actionMap = { hit, stand, double, split };
     for (const [event, fn] of Object.entries(actionMap)) {
       socket.on(`action:${event}`, (payload) => {
         const room = getRoom(socket.data.roomId);

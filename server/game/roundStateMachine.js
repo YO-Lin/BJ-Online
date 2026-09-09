@@ -34,6 +34,7 @@ export function placeBet(room, socketId, amount) {
     evenMoneyEligible: false,
     evenMoneyTaken: null,
     result: null,
+    earlySettled: false,
   };
   room.hands.push(hand);
   seat.handIds.push(hand.id);
@@ -200,11 +201,21 @@ export function double(room, socketId, handId) {
   advanceTurn(room);
 }
 
+// Surrender doesn't need to wait for the rest of the room to finish (unlike every
+// other outcome, which is only known once the dealer's hole card is revealed) — the
+// half-bet penalty is fixed the moment the player decides. So it's settled and paid
+// out immediately here rather than being batched into resolveRound() at round end.
+// (An insurance bet placed earlier on this hand, if any, still can't be settled yet —
+// that still depends on the dealer's hole card — so resolveRound() still handles it.)
 export function surrender(room, socketId, handId) {
   const hand = assertActiveHand(room, socketId, handId);
   if (!canSurrender(hand)) throw new GameError('這手牌不能投降');
+  const payout = -Math.floor(hand.bet / 2);
   hand.status = 'SURRENDERED';
+  hand.result = 'SURRENDER';
+  hand.earlySettled = true;
   advanceTurn(room);
+  return payout;
 }
 
 export function split(room, socketId, handId) {
@@ -235,6 +246,7 @@ export function split(room, socketId, handId) {
     evenMoneyEligible: false,
     evenMoneyTaken: false,
     result: null,
+    earlySettled: false,
   };
 
   // Deal one card to each resulting hand immediately.
@@ -282,10 +294,12 @@ export function resolveRound(room) {
   for (const hand of room.hands) {
     const insurancePayout = resolveInsurance(hand, dealerHasBlackjack);
     let handResult;
-    if (hand.status === 'BUST') {
+    if (hand.earlySettled) {
+      // Surrender already paid out its penalty the moment it happened — only the
+      // insurance portion (if any) is still pending here.
+      handResult = { result: hand.result, payout: 0 };
+    } else if (hand.status === 'BUST') {
       handResult = { result: 'LOSS', payout: -hand.bet };
-    } else if (hand.status === 'SURRENDERED') {
-      handResult = { result: 'SURRENDER', payout: -Math.floor(hand.bet / 2) };
     } else if (hand.status === 'EVEN_MONEY') {
       // Locked in already — 1:1 regardless of how the dealer's hand actually turns out.
       handResult = { result: 'EVEN_MONEY', payout: hand.bet };

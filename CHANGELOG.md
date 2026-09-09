@@ -2,6 +2,14 @@
 
 這份文件記錄每次程式改動的內容，只給開發時參考，不對外顯示在網站上。
 
+## 2026-09-10 — 投降改成立即結算籌碼，修正牌局紀錄缺少投降標籤的bug
+
+- `server/game/roundStateMachine.js` 的 `surrender()`：原本只設定 status，實際扣籌碼要等整局所有玩家、莊家都行動完才在 `resolveRound()` 一次結算。改成投降當下就算出 `-Math.floor(bet/2)` 並直接回傳，同時把 `hand.result` 提早設成 `'SURRENDER'`、標記新增的 `earlySettled` 旗標，讓 `resolveRound()` 之後不會對同一手牌重複扣款。
+- `server/socket/index.js`：把 `surrender` 從共用的 hit/stand/double/split actionMap 抽出來，獨立寫 `action:surrender` handler，呼叫 `applyChipDelta` 並立刻 emit `chip:update`，跟現有 `chip:topup` 用同一套模式。
+- 特別處理過一個邊界情況：玩家先買保險、之後才投降這手牌——投降的半注罰款可以立即結算，但保險理賠仍要等莊家暗牌翻開才知道，所以 `resolveRound()` 對 `earlySettled` 的手牌只補算保險那部分，不會把投降罰款算兩次。已用直接呼叫引擎的方式測試過這個情境（先買保險50、投降扣50、莊家開出Blackjack、保險理賠100，總計正好+50，沒有重複扣款）。
+- `client/src/components/HistoryLog.tsx` 的 `RESULT_LABEL` 原本沒有 `SURRENDER`／`EVEN_MONEY` 兩個 key，導致整局結束後右側牌局紀錄裡投降/等額支付的那行會顯示 `undefined`，這次一併補上。
+- 這次修改完先不部署，等使用者確認後再部署。
+
 ## 2026-09-09 — 分牌上限從最多3次（4手）改成最多2次（3手）
 
 - `server/game/handEngine.js` 的 `canSplit()` 條件從 `splitDepth < 3` 改成 `splitDepth < 2`。同步更新 `client/src/components/RoomScreen.tsx` 的前端判斷、README規則說明。
