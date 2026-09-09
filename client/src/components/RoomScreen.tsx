@@ -133,11 +133,16 @@ export function RoomScreen({
             </div>
           </div>
 
-          {Array.from({ length: roomState.maxHands }).map((_, seatIndex) => {
+          {/* Split isn't capped by maxHands, so the table can end up holding more
+              hands than physical betting slots — spread the arc across however
+              many hands actually exist once that happens, instead of only ever
+              drawing the original 7 slots. */}
+          {Array.from({ length: Math.max(roomState.maxHands, totalHands) }).map((_, seatIndex) => {
+            const seatCount = Math.max(roomState.maxHands, totalHands);
             const hand = roomState.hands[seatIndex];
             // Seats fill right-to-left: the first hand created sits in the rightmost slot.
-            const arcIndex = roomState.maxHands - 1 - seatIndex;
-            const { left, top } = getSeatTransform(arcIndex, roomState.maxHands);
+            const arcIndex = seatCount - 1 - seatIndex;
+            const { left, top } = getSeatTransform(arcIndex, seatCount);
             const seatStyle = {
               left: `${left}%`,
               top: `${top}%`,
@@ -161,11 +166,13 @@ export function RoomScreen({
                 isActive={roomState.activeHandId === hand.id}
                 canDouble={hand.cards.length === 2 && !hand.isSplitAces}
                 canSplit={
+                  // Split isn't limited by the room's max-hands cap (that only
+                  // caps opening new hands by betting) — only by how many times
+                  // this specific hand has already been split.
                   hand.cards.length === 2 &&
                   hand.cards[0].rank === hand.cards[1].rank &&
                   hand.splitDepth < 3 &&
-                  !hand.isSplitAces &&
-                  totalHands < roomState.maxHands
+                  !hand.isSplitAces
                 }
                 style={seatStyle}
                 dealOrders={[seatIndex, roomState.maxHands + 1 + seatIndex]}

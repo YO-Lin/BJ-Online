@@ -210,7 +210,9 @@ export function surrender(room, socketId, handId) {
 export function split(room, socketId, handId) {
   const hand = assertActiveHand(room, socketId, handId);
   if (!canSplit(hand)) throw new GameError('這手牌不能分牌');
-  if (!canAddHand(room)) throw new GameError(`房間手牌數已達上限（${MAX_HANDS}手），無法分牌`);
+  // The room-wide MAX_HANDS cap only limits how many hands players can open by
+  // betting — split is capped independently, purely by canSplit's own
+  // splitDepth < 3 rule, so a full table can still split into more hands.
 
   const seat = room.players.get(socketId);
   const isAceSplit = hand.cards[0].rank === 'A';
