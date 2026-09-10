@@ -89,6 +89,12 @@ export function HandView({
         {payout !== undefined && payout > 0 && (
           <div className="seat-chip seat-chip-win">+{payout}</div>
         )}
+        {/* Surrender pays out immediately (see roundStateMachine.js's surrender()),
+            so this doesn't wait for the round-end `payout` prop like win/loss do —
+            it's already a known, final loss the moment the hand surrenders. */}
+        {hand.result === 'SURRENDER' && (
+          <div className="seat-chip seat-chip-loss">-{Math.floor(hand.bet / 2)}</div>
+        )}
       </div>
 
       <div className="seat-info">

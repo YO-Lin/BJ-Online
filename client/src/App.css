@@ -292,6 +292,10 @@ button {
    buttons that used to sit directly under each hand's cards on the table. */
 .action-panel {
   flex: 0 0 auto;
+  /* Pushes the panel toward the bottom of the sidebar's available height instead of
+     sitting right under whatever's above it, so it reads as "middle-lower" rather
+     than immediately following the count/history/insurance sections. */
+  margin-top: auto;
   background: #0f4a2c;
   border: 1px solid #d4af37;
   border-radius: 8px;
@@ -433,6 +437,24 @@ button {
   padding: 0 6px;
   border-radius: 999px;
   background: #1b5e20;
+  border-style: solid;
+  white-space: nowrap;
+  animation: chip-win-in 500ms ease-out both;
+  z-index: 3;
+}
+
+/* Surrender's immediate half-bet loss — same shape/position as the win badge,
+   just red instead of green, and slides in from the same spot. */
+.seat-chip-loss {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  margin-left: 6px;
+  width: auto;
+  min-width: 42px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #7a1f1f;
   border-style: solid;
   white-space: nowrap;
   animation: chip-win-in 500ms ease-out both;

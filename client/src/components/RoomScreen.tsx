@@ -205,14 +205,10 @@ export function RoomScreen({
       </div>
 
       <div className="room-sidebar">
-        {showActionPanel && activeHand && (
-          <ActionPanel
-            socket={socket}
-            hand={activeHand}
-            canDouble={canDoubleHand(activeHand)}
-            canSplit={canSplitHand(activeHand)}
-          />
-        )}
+        <CountDisplay count={roomState.count} />
+        <button className="history-toggle-btn" onClick={() => setShowHistory(true)}>
+          牌局紀錄（{roomState.historyLog.length}局）
+        </button>
 
         {roomState.phase === 'INSURANCE' && insuranceHandsPending.length > 0 && (
           <section className="insurance-box">
@@ -240,10 +236,14 @@ export function RoomScreen({
           </section>
         )}
 
-        <CountDisplay count={roomState.count} />
-        <button className="history-toggle-btn" onClick={() => setShowHistory(true)}>
-          牌局紀錄（{roomState.historyLog.length}局）
-        </button>
+        {showActionPanel && activeHand && (
+          <ActionPanel
+            socket={socket}
+            hand={activeHand}
+            canDouble={canDoubleHand(activeHand)}
+            canSplit={canSplitHand(activeHand)}
+          />
+        )}
       </div>
 
       {showHistory && (
