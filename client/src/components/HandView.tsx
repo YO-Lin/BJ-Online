@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from 'react';
+import { useState } from 'react';
 import type { Socket } from 'socket.io-client';
 import type { HandState } from '../types';
 import { CardView } from './CardView';
@@ -26,26 +26,25 @@ const STATUS_LABEL: Record<string, string> = {
   DONE: '完成',
 };
 
+// Renders a single hand's cards/chips/status/buttons. Positioning, the shared seat
+// frame, and the owner's nickname (shown once per seat, not once per hand) all live
+// one level up in SeatGroup — a split seat holds several of these side by side.
 export function HandView({
   socket,
   hand,
-  ownerNickname,
   isMine,
   isActive,
   canDouble,
   canSplit,
-  style,
   dealOrders,
   payout,
 }: {
   socket: Socket;
   hand: HandState;
-  ownerNickname: string;
   isMine: boolean;
   isActive: boolean;
   canDouble: boolean;
   canSplit: boolean;
-  style?: CSSProperties;
   dealOrders: number[];
   payout?: number;
 }) {
@@ -64,16 +63,24 @@ export function HandView({
     });
   }
 
+  // A split hand's cards overlap front-to-back instead of fanning out, so several
+  // hands can sit compactly side by side in the same seat. An unsplit hand keeps
+  // the original fanned-out look.
+  const isSplitHand = hand.splitDepth > 0;
   const fanCenter = (hand.cards.length - 1) / 2;
 
   return (
-    <div className={`seat-column ${isActive ? 'seat-active' : ''}`} style={style}>
+    <div className={`seat-column ${isActive ? 'seat-active' : ''}`}>
       <div className="seat-cards">
         {hand.cards.map((c, i) => (
           <div
             key={i}
-            className="seat-card-fan"
-            style={{ marginLeft: i === 0 ? 0 : -12, transform: `rotate(${(i - fanCenter) * 10}deg)` }}
+            className={isSplitHand ? 'seat-card-stack' : 'seat-card-fan'}
+            style={
+              isSplitHand
+                ? { marginTop: i === 0 ? 0 : -34 }
+                : { marginLeft: i === 0 ? 0 : -12, transform: `rotate(${(i - fanCenter) * 10}deg)` }
+            }
           >
             <CardView card={c} isNew={dealInfo[i]?.isNew} delayMs={dealInfo[i]?.delayMs} />
           </div>
@@ -101,7 +108,6 @@ export function HandView({
       </div>
 
       <div className="seat-info">
-        <div className="seat-name">{ownerNickname}{isMine ? '（我）' : ''}</div>
         <div className="seat-total">
           <span>{total}</span>
           <span>{STATUS_LABEL[hand.status] ?? hand.status}</span>

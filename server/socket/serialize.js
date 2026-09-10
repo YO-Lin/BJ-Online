@@ -25,6 +25,7 @@ export function serializeRoom(room) {
     hands: room.hands.map((h) => ({
       id: h.id,
       ownerSocketId: h.ownerSocketId,
+      groupId: h.groupId,
       cards: h.cards,
       bet: h.bet,
       status: h.status,

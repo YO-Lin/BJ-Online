@@ -289,9 +289,35 @@ button {
 }
 
 /* Seats */
-.seat-column {
+/* One seat on the table arc. Normally wraps a single hand; after a split it wraps
+   several side by side (see SeatGroup) — the border/background that used to live on
+   each hand's own .seat-square now lives here once, shared by the whole seat. */
+.seat-group {
   position: absolute;
   z-index: 2;
+  width: fit-content;
+  border: 2px solid #d4af37;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.12);
+  padding: 4px;
+}
+.seat-group-name {
+  font-weight: 600;
+  font-size: 13px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+.seat-group-hands {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.seat-column {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -309,23 +335,33 @@ button {
 .seat-card-fan {
   transition: transform 150ms ease-out;
 }
+/* Split hands overlap front-to-back (stacked, no rotation) instead of fanning out,
+   so several hands can sit compactly side by side in the same seat. */
+.seat-card-stack .card {
+  width: clamp(40px, 6.5vw, 60px);
+}
+.seat-card-stack {
+  transition: margin-top 150ms ease-out;
+}
 
 .seat-square {
   position: relative;
   width: clamp(50px, 8vw, 70px);
   height: clamp(58px, 9vw, 80px);
-  border: 2px solid #d4af37;
-  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.12);
   flex-shrink: 0;
 }
 .seat-square-empty {
   position: absolute;
+  border: 2px solid #d4af37;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.12);
   border-style: dashed;
   opacity: 0.7;
+  width: clamp(50px, 8vw, 70px);
+  height: clamp(58px, 9vw, 80px);
 }
 
 .chip-stack {
@@ -396,12 +432,6 @@ button {
 .seat-active .seat-info {
   border-color: #d4af37;
   box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.4);
-}
-.seat-name {
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 .seat-total {
   display: flex;

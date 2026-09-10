@@ -11,6 +11,7 @@ export type HandResult = 'WIN' | 'LOSS' | 'PUSH' | 'BLACKJACK_WIN' | 'INSURANCE_
 export interface HandState {
   id: string;
   ownerSocketId: string;
+  groupId: string;
   cards: Card[];
   bet: number;
   status: HandStatus;

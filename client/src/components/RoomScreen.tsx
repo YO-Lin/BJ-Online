@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { Socket } from 'socket.io-client';
 import type { RoomState } from '../types';
 import { CardView } from './CardView';
-import { HandView } from './HandView';
+import { SeatGroup } from './SeatGroup';
 import { CountDisplay } from './CountDisplay';
 import { HistoryLog } from './HistoryLog';
 import { useDealAnimation } from '../hooks/useDealAnimation';
@@ -65,6 +65,21 @@ export function RoomScreen({
   );
   const myHands = roomState.hands.filter((h) => myHandIds.has(h.id));
   const totalHands = roomState.hands.length;
+
+  // Group hands by groupId so a split hand's children stay clustered in the one
+  // seat they came from, instead of each getting its own slot on the arc. Grouping
+  // preserves each group's first-appearance order, so seat positions don't shuffle.
+  const seatGroups: { groupId: string; hands: typeof roomState.hands }[] = [];
+  const groupIndex = new Map<string, number>();
+  for (const hand of roomState.hands) {
+    const idx = groupIndex.get(hand.groupId);
+    if (idx === undefined) {
+      groupIndex.set(hand.groupId, seatGroups.length);
+      seatGroups.push({ groupId: hand.groupId, hands: [hand] });
+    } else {
+      seatGroups[idx].hands.push(hand);
+    }
+  }
 
   function placeBet() {
     socket.emit('bet:place', { amount: betAmount });
@@ -133,13 +148,13 @@ export function RoomScreen({
             </div>
           </div>
 
-          {/* Split isn't capped by maxHands, so the table can end up holding more
-              hands than physical betting slots — spread the arc across however
-              many hands actually exist once that happens, instead of only ever
-              drawing the original 7 slots. */}
-          {Array.from({ length: Math.max(roomState.maxHands, totalHands) }).map((_, seatIndex) => {
-            const seatCount = Math.max(roomState.maxHands, totalHands);
-            const hand = roomState.hands[seatIndex];
+          {/* Splitting doesn't add new seats to the arc — a split hand's children
+              stay clustered in the one seat they came from (see seatGroups above).
+              Seats can still exceed maxHands in principle if more bets than seats
+              existed, so this stays a Math.max for safety. */}
+          {Array.from({ length: Math.max(roomState.maxHands, seatGroups.length) }).map((_, seatIndex) => {
+            const seatCount = Math.max(roomState.maxHands, seatGroups.length);
+            const group = seatGroups[seatIndex];
             // Seats fill right-to-left: the first hand created sits in the rightmost slot.
             const arcIndex = seatCount - 1 - seatIndex;
             const { left, top } = getSeatTransform(arcIndex, seatCount);
@@ -149,34 +164,25 @@ export function RoomScreen({
               transform: 'translate(-50%, -50%)',
             };
 
-            if (!hand) {
+            if (!group) {
               return (
                 <div key={`empty-${seatIndex}`} className="seat-square seat-square-empty" style={seatStyle} />
               );
             }
 
-            const owner = roomState.players.find((p) => p.socketId === hand.ownerSocketId);
+            const owner = roomState.players.find((p) => p.socketId === group.hands[0].ownerSocketId);
             return (
-              <HandView
-                key={hand.id}
+              <SeatGroup
+                key={group.groupId}
                 socket={socket}
-                hand={hand}
+                hands={group.hands}
                 ownerNickname={owner?.nickname ?? '?'}
-                isMine={hand.ownerSocketId === mySocketId}
-                isActive={roomState.activeHandId === hand.id}
-                canDouble={hand.cards.length === 2 && !hand.isSplitAces}
-                canSplit={
-                  // Split isn't limited by the room's max-hands cap (that only
-                  // caps opening new hands by betting) — only by how many times
-                  // this specific hand has already been split.
-                  hand.cards.length === 2 &&
-                  hand.cards[0].rank === hand.cards[1].rank &&
-                  hand.splitDepth < 2 &&
-                  !hand.isSplitAces
-                }
+                mySocketId={mySocketId}
+                activeHandId={roomState.activeHandId}
                 style={seatStyle}
-                dealOrders={[seatIndex, roomState.maxHands + 1 + seatIndex]}
-                payout={payouts[hand.id]}
+                seatIndex={seatIndex}
+                maxHands={roomState.maxHands}
+                payouts={payouts}
               />
             );
           })}

@@ -21,12 +21,16 @@ export function placeBet(room, socketId, amount) {
   if (amount <= 0) throw new GameError('下注金額必須大於0');
   if (!canAddHand(room)) throw new GameError(`房間手牌數已達上限（${MAX_HANDS}手）`);
 
+  const id = randomUUID();
   const hand = {
-    id: randomUUID(),
+    id,
     ownerSocketId: socketId,
     cards: [],
     bet: amount,
     status: 'BETTING',
+    // Every hand descended from this bet (via split) keeps this same groupId, so the
+    // client can cluster a split hand's children back into the one seat they came from.
+    groupId: id,
     splitDepth: 0,
     isSplitAces: false,
     wasDoubled: false,
@@ -239,6 +243,7 @@ export function split(room, socketId, handId) {
     cards: [cardB],
     bet: hand.bet,
     status: 'ACTING',
+    groupId: hand.groupId,
     splitDepth: hand.splitDepth,
     isSplitAces: isAceSplit,
     wasDoubled: false,

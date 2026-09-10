@@ -2,6 +2,15 @@
 
 這份文件記錄每次程式改動的內容，只給開發時參考，不對外顯示在網站上。
 
+## 2026-09-10 — 分牌後的手牌改成同一座位並排顯示，不再各自長出獨立座位
+
+- 之前分牌後，新手牌會在牌桌弧線上多長出一個全新座位格子，視覺上像多了一個玩家。使用者要求分牌後的手牌要擠在原本那一個座位範圍內並排顯示，只用同一個框。
+- `server/game/roundStateMachine.js`：`placeBet()`／`split()` 建立的手牌新增 `groupId` 欄位（下注建立時等於自己的 id，split 產生的子手牌沿用原手牌的 groupId），用來標記同一組分牌血緣。`server/socket/serialize.js` 同步把 `groupId` 加進傳給前端的資料。
+- 前端新增 `client/src/components/SeatGroup.tsx`：把原本 `HandView.tsx` 身兼的「座位定位＋邊框＋玩家名稱」抽出來獨立成一層，`RoomScreen.tsx` 改成依 `groupId` 分組決定座位數與位置（不分牌時跟原本行為完全一樣），同一組的手牌並排渲染在同一個 `SeatGroup` 裡，共用一個邊框、玩家名稱只顯示一次。
+- 分牌後的手牌（`splitDepth > 0`）牌組改成上下小幅度重疊（不轉角度），沒分牌的單一手牌維持原本旋轉扇形攤開不變。
+- 用本機 Postgres + Node server 實際跑過真實 Socket.IO 流程驗證：湊出對子分牌後，`room:state` 裡兩手牌確實共用同一個 `groupId`，其他座位的手牌各自獨立成組不受影響。TypeScript build 通過。
+- 這次修改完先不部署，等使用者確認後再部署。
+
 ## 2026-09-10 — 投降改成立即結算籌碼，修正牌局紀錄缺少投降標籤的bug
 
 - `server/game/roundStateMachine.js` 的 `surrender()`：原本只設定 status，實際扣籌碼要等整局所有玩家、莊家都行動完才在 `resolveRound()` 一次結算。改成投降當下就算出 `-Math.floor(bet/2)` 並直接回傳，同時把 `hand.result` 提早設成 `'SURRENDER'`、標記新增的 `earlySettled` 旗標，讓 `resolveRound()` 之後不會對同一手牌重複扣款。
