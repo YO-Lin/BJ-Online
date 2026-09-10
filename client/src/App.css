@@ -290,16 +290,12 @@ button {
 
 /* Seats */
 /* One seat on the table arc. Normally wraps a single hand; after a split it wraps
-   several side by side (see SeatGroup) — the border/background that used to live on
-   each hand's own .seat-square now lives here once, shared by the whole seat. */
+   several side by side (see SeatGroup). This is purely a positioning wrapper — no
+   border of its own, so it never grows to visually enclose whatever the cards fan
+   out to. Each hand keeps its own small fixed-size frame (.seat-square) like before. */
 .seat-group {
   position: absolute;
   z-index: 2;
-  width: fit-content;
-  border: 2px solid #d4af37;
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.12);
-  padding: 4px;
 }
 .seat-group-name {
   font-weight: 600;
@@ -348,20 +344,18 @@ button {
   position: relative;
   width: clamp(50px, 8vw, 70px);
   height: clamp(58px, 9vw, 80px);
+  border: 2px solid #d4af37;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: rgba(0, 0, 0, 0.12);
   flex-shrink: 0;
 }
 .seat-square-empty {
   position: absolute;
-  border: 2px solid #d4af37;
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.12);
   border-style: dashed;
   opacity: 0.7;
-  width: clamp(50px, 8vw, 70px);
-  height: clamp(58px, 9vw, 80px);
 }
 
 .chip-stack {
