@@ -51,6 +51,9 @@ export function startRound(room) {
 
   room.roundNumber += 1;
   room.dealerHand = { cards: [] };
+  // Lets the socket layer's dealer-turn scheduling guard fire again this round
+  // (see scheduleDealerTurnAndSettle in server/socket/index.js).
+  room._dealerTurnScheduled = false;
 
   // Deal order: one card to each hand, then the dealer's up card, then a second
   // card to each hand. The dealer's second (hole) card is only drawn once all
@@ -137,9 +140,10 @@ function beginPlayerTurns(room) {
   room.phase = 'PLAYER_TURNS';
   room.activeHandIndex = 0;
   skipDoneHands(room);
-  if (room.activeHandIndex >= room.hands.length) {
-    runDealerTurn(room);
-  }
+  // If every hand is already resolved (e.g. all had blackjack), activeHandIndex is
+  // immediately past the end — the socket layer notices this after broadcasting and
+  // schedules the dealer's turn itself (with the intended pause before it starts).
+  // Not done synchronously here so that pause is never skipped.
 }
 
 function skipDoneHands(room) {
@@ -171,9 +175,9 @@ function assertActiveHand(room, socketId, handId) {
 function advanceTurn(room) {
   room.activeHandIndex += 1;
   skipDoneHands(room);
-  if (room.activeHandIndex >= room.hands.length) {
-    runDealerTurn(room);
-  }
+  // Doesn't call runDealerTurn() itself — the socket layer notices once all hands
+  // are done (activeHandIndex past the end, phase still PLAYER_TURNS) and schedules
+  // it after a short pause instead of starting it the instant the last hand finishes.
 }
 
 export function hit(room, socketId, handId) {
@@ -275,7 +279,10 @@ export function split(room, socketId, handId) {
   // else: player continues acting on the same activeHandIndex (now the reduced-to-1-card hand)
 }
 
-function runDealerTurn(room) {
+// Exported so the socket layer can call this itself once it's ready to (after the
+// pause following the last hand's action) instead of it firing automatically the
+// instant the last hand finishes.
+export function runDealerTurn(room) {
   room.phase = 'DEALER_TURN';
 
   // The dealer's second card is dealt now, only after every player has finished.

@@ -1,7 +1,7 @@
 import { socketAuthMiddleware } from '../auth/authMiddleware.js';
 import { createRoom, getRoom, joinRoom, markDisconnected } from '../rooms/roomManager.js';
 import { serializeRoom } from './serialize.js';
-import { GameError, placeBet, startRound, decideInsurance, decideEvenMoney, hit, stand, double, split, surrender, resolveRound, backToBetting } from '../game/roundStateMachine.js';
+import { GameError, placeBet, startRound, decideInsurance, decideEvenMoney, hit, stand, double, split, surrender, runDealerTurn, resolveRound, backToBetting } from '../game/roundStateMachine.js';
 import {
   applyChipDelta,
   findById,
@@ -25,10 +25,12 @@ function handleError(socket, err) {
   }
 }
 
-// If the round has reached DEALER_TURN, resolve payouts and apply chip deltas.
-// The room stays in PAYOUT phase (results visible) until a player explicitly
-// triggers 'round:continue' to move back to betting for the next round.
-async function settleIfDealerTurn(io, room) {
+// Resolve payouts and apply chip deltas. Only called once the dealer's cards have
+// had time to finish their reveal animation on the client (see
+// scheduleDealerTurnAndSettle) — never right when DEALER_TURN starts. The room
+// stays in PAYOUT phase (results visible) until a player explicitly triggers
+// 'round:continue' to move back to betting for the next round.
+async function settleRound(io, room) {
   if (room.phase !== 'DEALER_TURN') return;
   const results = resolveRound(room);
 
@@ -48,19 +50,46 @@ async function settleIfDealerTurn(io, room) {
   broadcastRoom(io, room);
 }
 
-// Broadcasts the room exactly once after an action. If the action just ended the
-// round (phase is now DEALER_TURN), let settleIfDealerTurn do the one broadcast at
-// the end (after it resolves payouts) instead of also broadcasting here first —
-// two back-to-back 'room:state' events for the same dealer-cards change caused the
-// client's deal-animation to reset a still-pending card's "new" flag before its
-// staggered CSS animation ever got to play, making it pop in instantly instead of
-// sliding in with the intended pause.
-async function broadcastOrSettle(io, room) {
-  if (room.phase === 'DEALER_TURN') {
-    await settleIfDealerTurn(io, room);
-  } else {
-    broadcastRoom(io, room);
-  }
+// Pause after the last hand finishes before the dealer starts drawing, so players
+// get a beat to see the last action land instead of the dealer barreling in
+// immediately. Matches client/src/hooks/useDealAnimation.ts's defaults so the
+// payout results don't arrive (and settle chip balances) until the dealer's card
+// reveal animation has actually finished playing on screen.
+const DEALER_START_DELAY_MS = 1000;
+const DEALER_CARD_REVEAL_STEP_MS = 1500; // useDealAnimation's batchStepMs
+const FINAL_CARD_ANIMATION_MS = 900; // covers the deal-in keyframe (800ms) + slack
+
+function scheduleDealerTurnAndSettle(io, room) {
+  if (room.phase !== 'PLAYER_TURNS' || room.activeHandIndex < room.hands.length) return;
+  if (room._dealerTurnScheduled) return;
+  room._dealerTurnScheduled = true;
+
+  setTimeout(() => {
+    try {
+      const cardsBefore = room.dealerHand.cards.length;
+      runDealerTurn(room);
+      broadcastRoom(io, room);
+
+      const newCardCount = room.dealerHand.cards.length - cardsBefore;
+      const revealDurationMs = newCardCount > 1
+        ? (newCardCount - 1) * DEALER_CARD_REVEAL_STEP_MS + FINAL_CARD_ANIMATION_MS
+        : FINAL_CARD_ANIMATION_MS;
+
+      setTimeout(() => {
+        settleRound(io, room).catch((err) => console.error('Failed to settle round', err));
+      }, revealDurationMs);
+    } catch (err) {
+      console.error('Failed to run dealer turn', err);
+    }
+  }, DEALER_START_DELAY_MS);
+}
+
+// Broadcasts the room exactly once after an action, then — if that action just made
+// this the last hand to finish — schedules the dealer's turn and settlement with the
+// intended pauses instead of resolving everything instantly in the same tick.
+function afterAction(io, room) {
+  broadcastRoom(io, room);
+  scheduleDealerTurnAndSettle(io, room);
 }
 
 export function attachSocketServer(io) {
@@ -139,7 +168,7 @@ export function attachSocketServer(io) {
       if (!room) return;
       try {
         startRound(room);
-        broadcastOrSettle(io, room);
+        afterAction(io, room);
         ack?.({ ok: true });
       } catch (err) {
         handleError(socket, err);
@@ -152,7 +181,7 @@ export function attachSocketServer(io) {
       if (!room) return;
       try {
         decideInsurance(room, socket.id, payload?.handId, !!payload?.takeInsurance);
-        broadcastOrSettle(io, room);
+        afterAction(io, room);
       } catch (err) {
         handleError(socket, err);
       }
@@ -163,7 +192,7 @@ export function attachSocketServer(io) {
       if (!room) return;
       try {
         decideEvenMoney(room, socket.id, payload?.handId, !!payload?.takeEvenMoney);
-        broadcastOrSettle(io, room);
+        afterAction(io, room);
       } catch (err) {
         handleError(socket, err);
       }
@@ -180,7 +209,7 @@ export function attachSocketServer(io) {
         const seat = room.players.get(socket.id);
         const newBalance = await applyChipDelta(seat.userId, payout);
         socket.emit('chip:update', { newBalance });
-        await broadcastOrSettle(io, room);
+        afterAction(io, room);
       } catch (err) {
         handleError(socket, err);
       }
@@ -193,7 +222,7 @@ export function attachSocketServer(io) {
         if (!room) return;
         try {
           fn(room, socket.id, payload?.handId);
-          broadcastOrSettle(io, room);
+          afterAction(io, room);
         } catch (err) {
           handleError(socket, err);
         }
