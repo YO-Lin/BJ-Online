@@ -2,6 +2,16 @@
 
 這份文件記錄每次程式改動的內容，只給開發時參考，不對外顯示在網站上。
 
+## 2026-09-10 — 操作按鈕面板移到右側，牌桌上加「輪到你」提示
+
+- 延續使用者「一項一項修改牌桌視覺」的第二項：原本每手牌下方擠著點數/狀態文字＋要牌/停牌/加倍/分牌/投降按鈕＋策略建議按鈕，使用者要求全部（點數狀態文字、按鈕、建議）移到右側側邊欄，統一用一個面板處理；面板只服務目前輪到的那一手。
+- 新增 `client/src/gameRules.ts`：把 `canDoubleHand`/`canSplitHand` 這兩條規則抽成共用函式（原本只有 `SeatGroup.tsx` 內聯算一次，現在改成 `RoomScreen.tsx` 算給 `ActionPanel` 用）。
+- 新增 `client/src/components/ActionPanel.tsx`：原本在 `HandView.tsx` 裡的 `act()`／`requestHint()`／action-row／hint-row 整段邏輯搬過來，事件名稱、payload 都不變（`action:hit`／`action:stand`…／`strategy:hint`）。
+- `client/src/components/HandView.tsx`：拿掉行動按鈕跟建議，只保留純資訊顯示（牌組、籌碼、點數/狀態），不再需要 `socket`／`canDouble`／`canSplit`／`isMine` props。新增：`isActive` 時顯示一個「▶ 行動中」金色徽章，取代原本靠邊框提示「輪到誰」的效果——現在按鈕離開了牌本身，用這個徽章讓所有人一眼看出目前輪到哪個座位、哪一手。
+- `client/src/components/RoomScreen.tsx`：算出 `activeHand`，只有輪到自己（`activeHand.ownerSocketId === mySocketId` 且 `phase==='PLAYER_TURNS'`）才在側邊欄最上方渲染 `ActionPanel`；不是自己的回合時面板不顯示。
+- `client/src/App.css`：新增 `.action-panel`（沿用 `.insurance-box` 卡片視覺，金色邊框強調）、`.active-turn-badge`。
+- 純前端UI變動，`npm run build` 確認過；用本機真實 Socket.IO 連線確認過 `action:*` 事件流程沒有受影響（時序、結算都正常）。畫面實際排版效果需要使用者用瀏覽器確認。這次修改完先不部署，等使用者確認後再部署；使用者提到還有「分牌按鈕重疊bug」這項尚未處理，之後繼續。
+
 ## 2026-09-10 — 牌局紀錄改成側邊欄按鈕 + 彈出視窗
 
 - 使用者想把牌桌視覺清乾淨，這次先處理其中一項：右側常駐顯示的「牌局紀錄」列表原本佔用側邊欄一大塊空間，改成只留一個「牌局紀錄（N局）」按鈕，點下去才彈出視窗顯示完整紀錄，點背景或關閉按鈕收起來。

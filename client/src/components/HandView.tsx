@@ -1,5 +1,3 @@
-import { useState } from 'react';
-import type { Socket } from 'socket.io-client';
 import type { HandState } from '../types';
 import { CardView } from './CardView';
 import { useDealAnimation } from '../hooks/useDealAnimation';
@@ -26,42 +24,24 @@ const STATUS_LABEL: Record<string, string> = {
   DONE: '完成',
 };
 
-// Renders a single hand's cards/chips/status/buttons. Positioning, the shared seat
-// frame, and the owner's nickname (shown once per seat, not once per hand) all live
-// one level up in SeatGroup — a split seat holds several of these side by side.
+// Renders a single hand's cards/chips/status — purely informational. Actions (hit/
+// stand/double/split/surrender/hint) for whichever hand is active now live in the
+// sidebar's ActionPanel instead, so a split seat doesn't get buttons crowding each
+// of its hands. Positioning, the shared seat frame, and the owner's nickname (shown
+// once per seat, not once per hand) all live one level up in SeatGroup.
 export function HandView({
-  socket,
   hand,
-  isMine,
   isActive,
-  canDouble,
-  canSplit,
   dealOrders,
   payout,
 }: {
-  socket: Socket;
   hand: HandState;
-  isMine: boolean;
   isActive: boolean;
-  canDouble: boolean;
-  canSplit: boolean;
   dealOrders: number[];
   payout?: number;
 }) {
-  const [hint, setHint] = useState<string | null>(null);
   const total = handTotalLabel(hand);
   const dealInfo = useDealAnimation(hand.cards.length, dealOrders);
-
-  function act(event: string) {
-    socket.emit(`action:${event}`, { handId: hand.id });
-    setHint(null);
-  }
-
-  function requestHint() {
-    socket.emit('strategy:hint', { handId: hand.id }, (res: { action?: string; error?: string }) => {
-      setHint(res.action ?? res.error ?? '無法取得建議');
-    });
-  }
 
   // A split hand's cards overlap front-to-back instead of fanning out, so several
   // hands can sit compactly side by side in the same seat. An unsplit hand keeps
@@ -71,6 +51,10 @@ export function HandView({
 
   return (
     <div className={`seat-column ${isActive ? 'seat-active' : ''}`}>
+      {/* Tells everyone at the table (not just the acting player) which seat/hand
+          the sidebar's action panel is currently controlling, since the buttons
+          no longer sit directly under this hand's own cards. */}
+      {isActive && <div className="active-turn-badge">▶ 行動中</div>}
       <div className="seat-cards">
         {hand.cards.map((c, i) => (
           <div
@@ -113,24 +97,6 @@ export function HandView({
           <span>{STATUS_LABEL[hand.status] ?? hand.status}</span>
           {hand.result && <span className="result-badge">{RESULT_LABEL[hand.result]}</span>}
         </div>
-        {isMine && isActive && (
-          <div className="action-row">
-            <button onClick={() => act('hit')}>要牌</button>
-            <button onClick={() => act('stand')}>停牌</button>
-            <button disabled={!canDouble} onClick={() => act('double')}>加倍</button>
-            <button disabled={!canSplit} onClick={() => act('split')}>分牌</button>
-            {/* Surrender is only ever valid on the hand's first decision — same
-                eligibility as doubling, so canDouble is reused here. */}
-            <button disabled={!canDouble} onClick={() => act('surrender')}>投降</button>
-          </div>
-        )}
-        {isMine && (
-          <div className="hint-row">
-            {hint ? <span className="hint-text">建議：{hint}</span> : (
-              <button className="hint-btn" onClick={requestHint}>顯示策略建議</button>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );

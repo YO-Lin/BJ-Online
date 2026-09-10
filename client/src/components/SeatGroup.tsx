@@ -1,5 +1,4 @@
 import type { CSSProperties } from 'react';
-import type { Socket } from 'socket.io-client';
 import type { HandState } from '../types';
 import { HandView } from './HandView';
 
@@ -7,7 +6,6 @@ import { HandView } from './HandView';
 // several (all sharing the same groupId), rendered side by side inside this one
 // shared frame instead of each getting its own separate seat slot on the arc.
 export function SeatGroup({
-  socket,
   hands,
   ownerNickname,
   mySocketId,
@@ -17,7 +15,6 @@ export function SeatGroup({
   maxHands,
   payouts,
 }: {
-  socket: Socket;
   hands: HandState[];
   ownerNickname: string;
   mySocketId?: string;
@@ -36,17 +33,8 @@ export function SeatGroup({
         {hands.map((hand) => (
           <HandView
             key={hand.id}
-            socket={socket}
             hand={hand}
-            isMine={hand.ownerSocketId === mySocketId}
             isActive={activeHandId === hand.id}
-            canDouble={hand.cards.length === 2 && !hand.isSplitAces}
-            canSplit={
-              hand.cards.length === 2 &&
-              hand.cards[0].rank === hand.cards[1].rank &&
-              hand.splitDepth < 2 &&
-              !hand.isSplitAces
-            }
             dealOrders={[seatIndex, maxHands + 1 + seatIndex]}
             payout={payouts[hand.id]}
           />

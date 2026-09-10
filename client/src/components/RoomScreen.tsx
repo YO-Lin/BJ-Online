@@ -3,10 +3,12 @@ import type { Socket } from 'socket.io-client';
 import type { RoomState } from '../types';
 import { CardView } from './CardView';
 import { SeatGroup } from './SeatGroup';
+import { ActionPanel } from './ActionPanel';
 import { CountDisplay } from './CountDisplay';
 import { HistoryLog } from './HistoryLog';
 import { useDealAnimation } from '../hooks/useDealAnimation';
 import { getSeatTransform } from '../tableSeats';
+import { canDoubleHand, canSplitHand } from '../gameRules';
 
 const PHASE_LABEL: Record<string, string> = {
   WAITING_FOR_BETS: '等待下注',
@@ -106,6 +108,10 @@ export function RoomScreen({
   const insuranceHandsPending = myHands.filter((h) => h.status !== 'BLACKJACK' && h.insuranceBet === null);
   const evenMoneyHandsPending = myHands.filter((h) => h.status === 'BLACKJACK' && h.evenMoneyTaken === null);
 
+  const activeHand = roomState.hands.find((h) => h.id === roomState.activeHandId);
+  const showActionPanel =
+    roomState.phase === 'PLAYER_TURNS' && !!activeHand && activeHand.ownerSocketId === mySocketId;
+
   return (
     <div className="room-screen">
       <div className="room-main">
@@ -175,7 +181,6 @@ export function RoomScreen({
             return (
               <SeatGroup
                 key={group.groupId}
-                socket={socket}
                 hands={group.hands}
                 ownerNickname={owner?.nickname ?? '?'}
                 mySocketId={mySocketId}
@@ -200,6 +205,15 @@ export function RoomScreen({
       </div>
 
       <div className="room-sidebar">
+        {showActionPanel && activeHand && (
+          <ActionPanel
+            socket={socket}
+            hand={activeHand}
+            canDouble={canDoubleHand(activeHand)}
+            canSplit={canSplitHand(activeHand)}
+          />
+        )}
+
         {roomState.phase === 'INSURANCE' && insuranceHandsPending.length > 0 && (
           <section className="insurance-box">
             <p>莊家明牌是 A，是否購買保險？（最高下注一半，理賠 2:1）</p>
