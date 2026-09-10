@@ -499,6 +499,37 @@ button {
   opacity: 0.5;
 }
 
+.history-toggle-btn {
+  flex: 0 0 auto;
+}
+
+.history-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.history-modal {
+  background: #0f4a2c;
+  border: 1px solid #1e6b42;
+  border-radius: 12px;
+  padding: 14px;
+  width: min(480px, 90vw);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+.history-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
 .count-box, .history-box {
   flex: 0 0 auto;
   background: #0f4a2c;

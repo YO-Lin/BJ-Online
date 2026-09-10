@@ -32,6 +32,7 @@ export function RoomScreen({
   const betAmount = Number(betAmountInput) || 0;
   const [lastError, setLastError] = useState<string | null>(null);
   const [payouts, setPayouts] = useState<Record<string, number>>({});
+  const [showHistory, setShowHistory] = useState(false);
   // Real round-robin deal order: every seat's first card (slots 0..maxHands-1),
   // then the dealer's up card (slot maxHands), then every seat's second card
   // (slots maxHands+1..2*maxHands).
@@ -226,8 +227,22 @@ export function RoomScreen({
         )}
 
         <CountDisplay count={roomState.count} />
-        <HistoryLog history={roomState.historyLog} />
+        <button className="history-toggle-btn" onClick={() => setShowHistory(true)}>
+          牌局紀錄（{roomState.historyLog.length}局）
+        </button>
       </div>
+
+      {showHistory && (
+        <div className="history-modal-backdrop" onClick={() => setShowHistory(false)}>
+          <div className="history-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="history-modal-header">
+              <span>牌局紀錄</span>
+              <button onClick={() => setShowHistory(false)}>關閉</button>
+            </div>
+            <HistoryLog history={roomState.historyLog} />
+          </div>
+        </div>
+      )}
 
       {/* Floating overlay, positioned fixed so its content never affects the
           table's layout above it. */}
