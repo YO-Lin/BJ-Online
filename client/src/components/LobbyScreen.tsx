@@ -6,11 +6,13 @@ export function LobbyScreen({
   nickname,
   chipBalance,
   onJoined,
+  onLogout,
 }: {
   socket: Socket;
   nickname: string;
   chipBalance: number;
   onJoined: (roomId: string) => void;
+  onLogout: () => void;
 }) {
   const [joinCode, setJoinCode] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +53,10 @@ export function LobbyScreen({
   return (
     <div className="centered-screen">
       <div className="auth-card">
-        <h1>歡迎，{nickname}</h1>
+        <div className="lobby-header">
+          <h1>歡迎，{nickname}</h1>
+          <button onClick={onLogout}>登出</button>
+        </div>
         <p className="chip-line">目前籌碼：{chipBalance}</p>
         <button className="primary" disabled={busy} onClick={createRoom}>建立新房間</button>
         <div className="divider">或</div>

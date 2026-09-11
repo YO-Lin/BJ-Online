@@ -71,6 +71,7 @@ export default function App() {
         nickname={auth.nickname}
         chipBalance={chipBalance}
         onJoined={() => {}}
+        onLogout={handleLogout}
       />
     );
   }

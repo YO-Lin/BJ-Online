@@ -2,6 +2,13 @@
 
 這份文件記錄每次程式改動的內容，只給開發時參考，不對外顯示在網站上。
 
+## 2026-09-11 — 大廳加上登出按鈕
+
+- 登入後的大廳畫面（`LobbyScreen`，顯示「歡迎，{暱稱}」那頁）原本完全沒有登出入口。`App.tsx` 裡其實早就有 `handleLogout()`（清 localStorage token、重置 state），只是沒有任何按鈕會呼叫它。
+- `client/src/components/LobbyScreen.tsx` 新增 `onLogout` prop 跟登出按鈕（放在「歡迎，{暱稱}」標題同一行）；`App.tsx` 把既有的 `handleLogout` 傳進去，沒有新邏輯。
+- `client/src/App.css` 新增 `.lobby-header` 排版樣式。
+- `npm run build` 確認過。這次修改完先不部署，等使用者確認後再部署。
+
 ## 2026-09-10 — 側邊欄排序調整、投降立即顯示-25圖示
 
 - 側邊欄由上到下改成：Hi-Lo 算牌資訊 → 牌局紀錄按鈕 → 保險/等額支付提示（有觸發才顯示）→ 行動按鈕面板（含策略建議，整組不拆開，用 `margin-top:auto` 推到側邊欄下方，呈現「中下方」位置）。`client/src/components/RoomScreen.tsx` 調整JSX順序，`client/src/App.css` 的 `.action-panel` 新增 `margin-top:auto`。
